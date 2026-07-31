@@ -242,6 +242,51 @@
   .title-fight .contract-org{text-shadow:0 0 34px rgba(212,175,55,.65);}
   .end-outcome{font-family:'Bebas Neue',sans-serif;font-size:46px;line-height:1.05;margin:4px 0;}
 
+  /* ---- Confirmation de joker ---- */
+  .joker-confirm{display:none;margin-top:12px;background:var(--card);border:1px solid var(--gold);border-radius:14px;padding:14px;animation:fadeIn .2s ease;}
+  .joker-confirm.show{display:block;}
+  .jc-head{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;margin-bottom:6px;}
+  .jc-head .j-ico{font-size:22px;}
+  .jc-desc{font-size:13.5px;color:var(--muted);line-height:1.5;}
+  .jc-warn{font-size:12px;color:var(--gold);margin-top:8px;line-height:1.4;}
+  .jc-btns{display:flex;gap:10px;margin-top:12px;}
+  .jc-btns .primary-btn{margin-top:0;flex:1;padding:12px;font-size:15px;}
+  .jc-btns .ghost-btn{margin-top:0;flex:1;padding:12px;font-size:14px;}
+
+  /* ---- FX : foule en délire (bonne réponse) ---- */
+  .fx-layer{position:fixed;inset:0;pointer-events:none;z-index:45;overflow:hidden;}
+  .fx-emoji{position:absolute;bottom:-48px;animation:fxRise 1.4s ease-out forwards;will-change:transform,opacity;}
+  @keyframes fxRise{
+    0%{transform:translateY(0) scale(.6) rotate(0deg);opacity:0;}
+    12%{opacity:1;}
+    100%{transform:translateY(-78vh) scale(1.25) rotate(var(--rot,0deg));opacity:0;}
+  }
+  .fx-flash{position:fixed;inset:0;pointer-events:none;z-index:44;background:radial-gradient(ellipse at 50% 65%, rgba(212,175,55,.30), transparent 65%);opacity:0;}
+  .fx-flash.go{animation:fxFlash .9s ease-out;}
+  @keyframes fxFlash{0%{opacity:0;}25%{opacity:1;}100%{opacity:0;}}
+
+  /* ---- FX : KO (game over) ---- */
+  .ko-layer{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(ellipse at center, rgba(140,4,0,.55), rgba(10,10,13,.88));}
+  .ko-layer.show{display:flex;}
+  .ko-text{font-family:'Bebas Neue',Impact,sans-serif;font-size:130px;line-height:1;color:var(--red);text-shadow:0 0 40px rgba(225,6,0,.8), 4px 4px 0 #4a0200;transform:rotate(-7deg);animation:koSlam .65s cubic-bezier(.22,1.6,.36,1) forwards;}
+  .ko-sub{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:4px;color:var(--text);opacity:0;animation:koSub .4s ease .5s forwards;}
+  @keyframes koSlam{
+    0%{transform:scale(5) rotate(-16deg);opacity:0;}
+    55%{transform:scale(.92) rotate(-5deg);opacity:1;}
+    75%{transform:scale(1.1) rotate(-9deg);}
+    100%{transform:scale(1) rotate(-7deg);opacity:1;}
+  }
+  @keyframes koSub{to{opacity:1;}}
+  .shake{animation:appShake .5s ease;}
+  @keyframes appShake{
+    0%,100%{transform:translate(0,0);}
+    15%{transform:translate(-9px,4px) rotate(-.6deg);}
+    30%{transform:translate(8px,-5px) rotate(.5deg);}
+    45%{transform:translate(-6px,3px);}
+    60%{transform:translate(5px,-2px);}
+    75%{transform:translate(-3px,2px);}
+  }
+
   ::selection{background:var(--red);color:#fff;}
 </style>
 </head>
@@ -405,6 +450,15 @@
     </div>
     <div class="lock-bar" id="c-lock-bar"><button class="primary-btn" id="c-lock-btn">Verrouiller la réponse</button></div>
     <div class="jokers-bar" id="c-jokers"></div>
+    <div class="joker-confirm" id="c-joker-confirm">
+      <div class="jc-head"><span class="j-ico" id="jc-ico">🎯</span><span id="jc-name">—</span></div>
+      <div class="jc-desc" id="jc-desc">—</div>
+      <div class="jc-warn" id="jc-warn"></div>
+      <div class="jc-btns">
+        <button class="primary-btn" id="jc-yes">Utiliser ce joker</button>
+        <button class="ghost-btn" id="jc-no">Annuler</button>
+      </div>
+    </div>
     <button class="retire-btn" id="c-retire-btn">🏳️ Prendre sa retraite — encaisser <span id="c-retire-pts">0</span> pts</button>
   </div>
 
@@ -450,6 +504,14 @@
   </div>
 
   <div class="points-popup" id="points-popup"></div>
+
+  <!-- Calques d'effets (mode carrière) -->
+  <div class="fx-flash" id="fx-flash"></div>
+  <div class="fx-layer" id="fx-layer"></div>
+  <div class="ko-layer" id="ko-layer">
+    <div class="ko-text">K.O.</div>
+    <div class="ko-sub">DÉFAITE PAR TKO</div>
+  </div>
 </div>
 
 <script>
@@ -554,14 +616,14 @@ const BANK = [
 {t:1,q:"Quel était le sport de base de Ronda Rousey avant le MMA ?",o:["Judo","Lutte","Boxe","Karaté"],a:0,e:"Ronda Rousey est médaillée de bronze olympique en judo (Pékin 2008)."},
 {t:1,q:"Lors de quel événement a eu lieu le tout premier combat féminin de l'histoire de l'UFC ?",o:["UFC 168","UFC 200","UFC 157","UFC 100"],a:2,e:"UFC 157, en 2013 : Ronda Rousey contre Liz Carmouche."},
 {t:1,q:"Quelle phrase l'arbitre Big John McCarthy est-il connu pour lancer avant un combat ?",o:["Let's get it on !","It's time !","Fight !","Let's go to war !"],a:0},
-{t:2,q:"Quelle est la limite de poids de la catégorie Poids Mouche (Flyweight) ?",o:["115 lbs","125 lbs","135 lbs","145 lbs"],a:1},
-{t:2,q:"Quelle est la limite de poids de la catégorie Poids Coq (Bantamweight) ?",o:["125 lbs","145 lbs","155 lbs","135 lbs"],a:3},
-{t:2,q:"Quelle est la limite de poids de la catégorie Poids Plume (Featherweight) ?",o:["165 lbs","145 lbs","135 lbs","155 lbs"],a:1},
-{t:2,q:"Quelle est la limite de poids de la catégorie Poids Léger (Lightweight) ?",o:["165 lbs","155 lbs","145 lbs","170 lbs"],a:1},
-{t:2,q:"Quelle est la limite de poids de la catégorie Poids Welter (Welterweight) ?",o:["170 lbs","155 lbs","185 lbs","165 lbs"],a:0},
-{t:2,q:"Quelle est la limite de poids de la catégorie Poids Moyen (Middleweight) ?",o:["170 lbs","195 lbs","185 lbs","205 lbs"],a:2},
-{t:2,q:"Quelle est la limite de poids de la catégorie Mi-Lourd (Light Heavyweight) ?",o:["205 lbs","225 lbs","195 lbs","185 lbs"],a:0},
-{t:2,q:"Quelle est la limite de poids supérieure de la catégorie Poids Lourd (Heavyweight) ?",o:["285 lbs","245 lbs","225 lbs","265 lbs"],a:3},
+{t:2,q:"Quelle est la limite de poids de la catégorie Poids Mouche (Flyweight) ?",o:["52,2 kg","56,7 kg","61,2 kg","65,8 kg"],a:1},
+{t:2,q:"Quelle est la limite de poids de la catégorie Poids Coq (Bantamweight) ?",o:["56,7 kg","65,8 kg","70,3 kg","61,2 kg"],a:3},
+{t:2,q:"Quelle est la limite de poids de la catégorie Poids Plume (Featherweight) ?",o:["74,8 kg","65,8 kg","61,2 kg","70,3 kg"],a:1},
+{t:2,q:"Quelle est la limite de poids de la catégorie Poids Léger (Lightweight) ?",o:["74,8 kg","70,3 kg","65,8 kg","77,1 kg"],a:1},
+{t:2,q:"Quelle est la limite de poids de la catégorie Poids Welter (Welterweight) ?",o:["77,1 kg","70,3 kg","83,9 kg","74,8 kg"],a:0},
+{t:2,q:"Quelle est la limite de poids de la catégorie Poids Moyen (Middleweight) ?",o:["77,1 kg","88,5 kg","83,9 kg","92,9 kg"],a:2},
+{t:2,q:"Quelle est la limite de poids de la catégorie Mi-Lourd (Light Heavyweight) ?",o:["92,9 kg","102,1 kg","88,5 kg","83,9 kg"],a:0},
+{t:2,q:"Quelle est la limite de poids supérieure de la catégorie Poids Lourd (Heavyweight) ?",o:["129,3 kg","111,1 kg","102,1 kg","120,2 kg"],a:3},
 {t:2,q:"Dans quel pays a été fondée l'organisation PRIDE FC en 1997 ?",o:["Corée du Sud","Thaïlande","Japon","Chine"],a:2},
 {t:2,q:"En quelle année Zuffa (Fertitta / Dana White) a-t-elle racheté l'UFC ?",o:["2009","1998","2001","2005"],a:2},
 {t:2,q:"Quelles divisions de poids l'UFC a-t-elle héritées de la fusion avec le WEC (2010-2011) ?",o:["Mouche et Paille","Welter et Moyen","Plume et Coq","Lourd et Mi-Lourd"],a:2},
@@ -595,7 +657,7 @@ const BANK = [
 {t:3,q:"Combien de juges notent officiellement un combat de MMA, cageside ?",o:["1","3","2","5"],a:1},
 {t:3,q:"Dans le système à 10 points obligatoire, comment est noté un round jugé totalement équilibré ?",o:["10-8","9-9","10-9","10-10"],a:3},
 {t:3,q:"Le combattant japonais Yuki Nakai est resté célèbre pour avoir remporté un combat de Vale Tudo malgré quoi ?",o:["Une fracture du bras","Un genou disloqué","Une disqualification annulée","La perte de la vue d'un œil suite à une attaque illégale"],a:3,e:"Un des combats les plus légendaires de l'histoire du MMA japonais."},
-{t:3,q:"Quelle catégorie de poids a été la première ouverte aux femmes à l'UFC, en 2013 ?",o:["Poids Coq (135 lbs)","Poids Mouche (125 lbs)","Poids Plume (145 lbs)","Poids Paille (115 lbs)"],a:0},
+{t:3,q:"Quelle catégorie de poids a été la première ouverte aux femmes à l'UFC, en 2013 ?",o:["Poids Coq (61,2 kg)","Poids Mouche (56,7 kg)","Poids Plume (65,8 kg)","Poids Paille (52,2 kg)"],a:0},
 {t:4,q:"Un combattant est pris dans un heel hook totalement verrouillé et hurle de douleur sans taper. Que doit faire l'arbitre ?",o:["Attendre qu'il tape obligatoirement","Demander à son coin s'il abandonne","Arrêter le combat pour éviter une blessure grave","Compter jusqu'à 10"],a:2,e:"L'arbitre peut stopper un combat sans tap si un danger de blessure grave est manifeste."},
 {t:4,q:"Le coach d'un combattant jette une serviette dans la cage en plein round pour arrêter le combat. Que se passe-t-il officiellement ?",o:["Le combattant est disqualifié","Le combat s'arrête immédiatement","Rien, ce geste n'a aucune valeur officielle en MMA","L'arbitre doit consulter les juges"],a:2,e:"Contrairement à la boxe, jeter l'éponge n'existe pas officiellement en MMA : seul l'arbitre décide."},
 {t:4,q:"Un round se termine parfaitement équilibré aux yeux des trois juges, sans avantage clair. Quel score doit-on donner ?",o:["10-8","10-9 pour l'attaquant","10-10","Le round n'est pas compté"],a:2},
@@ -618,41 +680,115 @@ BANK.forEach((q,i)=>{ q.id = i; q.pts = POINTS[q.t]; });
 /* =========================================================
    BANQUE DU MODE CARRIÈRE (séparée des autres modes)
    lvl: 1=Rue 2=Amateur 3=Hexagone 4=PFL 5=UFC
-   Questions PLACEHOLDER (faits intemporels, vérifiés) pour câbler
-   la mécanique — à remplacer/enrichir par la vraie banque étagée.
+   ~100 questions à faits intemporels et vérifiés, étagées par palier.
+   Pour en ajouter : même format, champ lvl = palier.
    ========================================================= */
 // >>> AJOUTER LES QUESTIONS DE CARRIÈRE ICI <<<
 const CAREER_BANK = [
-// --- Palier 1 : LA RUE (très facile) ---
+// --- Palier 1 : LA RUE (très facile, grand public) ---
 {lvl:1,q:"Dans quelle enceinte se battent les combattants de l'UFC ?",o:["Un ring à cordes","Une cage octogonale","Une fosse","Un tatami"],a:1},
 {lvl:1,q:"Comment un combattant signale-t-il qu'il abandonne ?",o:["Il lève le pouce","Il ferme les yeux","Il tape sur le sol ou l'adversaire","Il siffle"],a:2},
 {lvl:1,q:"Lequel de ces gestes est INTERDIT en MMA ?",o:["Le coup de genou","La morsure","Le coup de pied","La projection"],a:1},
 {lvl:1,q:"Que veut dire « KO » ?",o:["Kick-out","King of the Octagon","Knock-out","Knee only"],a:2},
+{lvl:1,q:"Que signifie « MMA » ?",o:["Modern Martial Arts","Mixed Martial Arts","Master Martial Arts","Maxi Muay Arts"],a:1},
+{lvl:1,q:"Combien de combattants s'affrontent dans la cage pendant un combat ?",o:["2","3","4","Toute l'équipe"],a:0},
+{lvl:1,q:"Qui dirige le combat à l'intérieur de la cage ?",o:["Le coach","L'arbitre","Le promoteur","Le public"],a:1},
+{lvl:1,q:"Quel est le surnom de Conor McGregor ?",o:["The Eagle","Bones","The Notorious","The Spider"],a:2},
+{lvl:1,q:"Quel pays est le berceau du jiu-jitsu brésilien ?",o:["Le Japon","Le Brésil","Les États-Unis","Le Mexique"],a:1},
+{lvl:1,q:"Quel est le surnom de Khabib Nurmagomedov ?",o:["The Eagle","The Bear","The Wolf","The Lion"],a:0},
+{lvl:1,q:"En MMA, frapper un adversaire au sol est…",o:["Toujours interdit","Autorisé, avec des restrictions","Réservé aux poids lourds","Autorisé uniquement au dernier round"],a:1},
+{lvl:1,q:"Quel équipement est obligatoire dans la bouche pendant un combat ?",o:["Rien","Un protège-dents","Un sifflet","Une gouttière en or"],a:1},
+{lvl:1,q:"Que fait un combattant quand il « tape » (tap-out) ?",o:["Il provoque l'adversaire","Il célèbre","Il abandonne","Il demande une pause publicitaire"],a:2},
+{lvl:1,q:"À qui remet-on la ceinture ?",o:["Au plus lourd","Au champion de la catégorie","Au plus rapide","Au public"],a:1},
+{lvl:1,q:"Comment appelle-t-on le coup de pied circulaire porté dans la jambe ?",o:["Le low kick","Le high kick","Le front kick","Le side kick"],a:0},
+{lvl:1,q:"Quel rôle Dana White a-t-il longtemps occupé à l'UFC ?",o:["Arbitre en chef","Champion des lourds","Président","Médecin officiel"],a:2},
+{lvl:1,q:"Quelle star française du MMA est surnommée « Bon Gamin » ?",o:["Ciryl Gane","Georges St-Pierre","Francis Ngannou","Cédric Doumbè"],a:0},
+{lvl:1,q:"Combien de temps de combat total dure un combat complet en 3 rounds ?",o:["9 minutes","12 minutes","15 minutes","30 minutes"],a:2},
+{lvl:1,q:"Si personne n'est mis KO ni soumis, qui désigne le vainqueur ?",o:["Le public","Les juges","Le promoteur","Les coachs"],a:1},
+{lvl:1,q:"Comment s'appelle la victoire obtenue par étranglement ou clé ?",o:["Le KO","La décision","La soumission","Le forfait"],a:2},
 // --- Palier 2 : MMA AMATEUR (facile) ---
 {lvl:2,q:"Quel art martial brésilien est la référence du combat au sol ?",o:["La capoeira","Le jiu-jitsu brésilien","Le taekwondo","Le krav maga"],a:1},
 {lvl:2,q:"Quels gants portent les combattants MMA ?",o:["Des gants de boxe classiques","Des mitaines à doigts libres","Des gants de gardien","Aucun gant"],a:1},
 {lvl:2,q:"Comment s'appelle la cage emblématique de l'UFC ?",o:["Le Colisée","L'Hexagone","L'Octogone","Le Dôme"],a:2},
 {lvl:2,q:"Combien de rounds compte un combat MMA classique (hors titre) ?",o:["3","5","7","2"],a:0},
-{lvl:2,q:"Quel mot désigne une victoire par étranglement ou clé ?",o:["Décision","KO","Soumission","Forfait"],a:2},
+{lvl:2,q:"Que signifie « TKO » ?",o:["Total Knock-out","Technical Knock-out","Triple Knock-out","Team KO"],a:1},
+{lvl:2,q:"Comment s'appelle l'étranglement réalisé en enfermant le cou avec les jambes ?",o:["La guillotine","Le triangle","Le kimura","Le crucifix"],a:1},
+{lvl:2,q:"Quel champion français a détenu un titre intérimaire des poids lourds à l'UFC ?",o:["Ciryl Gane","Benoît Saint Denis","Nassourdine Imavov","Manon Fiorot"],a:0},
+{lvl:2,q:"Quel coup utilise la pointe du coude ?",o:["Le jab","Le coup de coude","L'uppercut","Le crochet"],a:1},
+{lvl:2,q:"Comment appelle-t-on l'amenée au sol en saisissant les deux jambes ?",o:["Le double leg takedown","Le suplex","Le sweep","Le clinch"],a:0},
+{lvl:2,q:"Quelle position place un combattant assis à califourchon sur son adversaire ?",o:["La garde","Le side control","La montée (mount)","Le north-south"],a:2},
+{lvl:2,q:"Comment appelle-t-on une victoire décidée par les juges ?",o:["Une décision","Un no contest","Un forfait","Une disqualification"],a:0},
+{lvl:2,q:"Un combat de MMA se découpe en…",o:["Sets","Manches de billard","Rounds","Périodes de 20 minutes"],a:2},
+{lvl:2,q:"Quelle légende brésilienne est surnommée « The Spider » ?",o:["Royce Gracie","Anderson Silva","José Aldo","Charles Oliveira"],a:1},
+{lvl:2,q:"De quel sport olympique Ronda Rousey venait-elle ?",o:["La boxe","La lutte","Le judo","L'escrime"],a:2},
+{lvl:2,q:"Comment s'appelle la position où l'on enserre l'adversaire entre ses jambes, dos au sol ?",o:["La montée","La garde","Le crucifix","Le dos pris"],a:1},
+{lvl:2,q:"Quel équipement N'EST PAS porté en MMA professionnel ?",o:["Le protège-dents","La coquille","Le casque","Les mitaines"],a:2},
+{lvl:2,q:"Cain Velasquez, Stipe Miocic et Francis Ngannou ont tous été champions UFC de quelle catégorie ?",o:["Poids moyens","Poids lourds","Poids welters","Poids légers"],a:1},
+{lvl:2,q:"À quoi sert le « sprawl » ?",o:["À contrer une amenée au sol","À frapper plus fort","À récupérer entre les rounds","À provoquer l'adversaire"],a:0},
+{lvl:2,q:"Comment s'appelle le corps-à-corps debout, collé à l'adversaire ?",o:["Le clinch","Le sprawl","Le shadow boxing","Le grounding"],a:0},
+{lvl:2,q:"Quelle organisation organise les plus grands événements mondiaux de MMA ?",o:["La FIFA","L'UFC","La NBA","Le CIO"],a:1},
 // --- Palier 3 : HEXAGONE MMA (moyen) ---
 {lvl:3,q:"Combien de temps dure un round en MMA professionnel ?",o:["3 minutes","4 minutes","5 minutes","6 minutes"],a:2},
 {lvl:3,q:"En quelle année s'est tenu l'UFC 1 ?",o:["1990","1993","1995","1998"],a:1},
 {lvl:3,q:"Quelle organisation mythique de MMA était basée au Japon ?",o:["PRIDE FC","Bellator","Cage Warriors","KSW"],a:0},
 {lvl:3,q:"Comment appelle-t-on l'étranglement pris dans le dos de l'adversaire ?",o:["La guillotine","Le rear-naked choke","Le triangle","Le kimura"],a:1},
 {lvl:3,q:"Combien de rounds compte un combat de championnat ?",o:["3","4","5","6"],a:2},
+{lvl:3,q:"Quel Français a affronté Francis Ngannou pour le titre des lourds à l'UFC 270 ?",o:["Ciryl Gane","Fernand Lopez","Nassourdine Imavov","Thomas Petit"],a:0},
+{lvl:3,q:"Quelle organisation américaine a longtemps été le principal rival de l'UFC dans les années 2010 ?",o:["PRIDE","Bellator","Shooto","Pancrase"],a:1},
+{lvl:3,q:"Quelle soumission enferme le cou et un bras par l'avant, souvent debout ?",o:["Le rear-naked choke","Le heel hook","La guillotine","L'omoplata"],a:2},
+{lvl:3,q:"La clé « kimura » attaque principalement quelle articulation ?",o:["Le genou","La cheville","L'épaule","La hanche"],a:2},
+{lvl:3,q:"Combien pèsent environ les gants de MMA professionnels ?",o:["4 onces","8 onces","12 onces","16 onces"],a:0},
+{lvl:3,q:"Quelle catégorie se situe juste au-dessus des poids légers ?",o:["Les poids plumes","Les poids welters","Les poids moyens","Les poids coqs"],a:1},
+{lvl:3,q:"Amanda Nunes a détenu deux titres UFC simultanément : dans quelles catégories ?",o:["Paille et mouche","Coq et plume","Plume et légère","Mouche et coq"],a:1},
+{lvl:3,q:"Que désigne le « ground and pound » ?",o:["Un entraînement au sac","Frapper un adversaire amené au sol","Une danse de célébration","Un régime alimentaire"],a:1},
+{lvl:3,q:"Dans quelle ville s'est tenu l'UFC 1 ?",o:["Las Vegas","New York","Denver","Chicago"],a:2},
+{lvl:3,q:"Khabib Nurmagomedov a pris sa retraite invaincu avec quel bilan ?",o:["25-0","27-0","29-0","31-0"],a:2},
+{lvl:3,q:"Avec quel coup Anderson Silva a-t-il fini Vitor Belfort à l'UFC 126 ?",o:["Un front kick au visage","Un uppercut","Un coup de coude retourné","Un low kick"],a:0},
+{lvl:3,q:"Conor McGregor a été champion UFC dans quelles catégories ?",o:["Coq et plume","Plume et léger","Léger et welter","Welter et moyen"],a:1},
+{lvl:3,q:"Comment s'appelle le contrôle du dos avec les jambes crochetées ?",o:["La garde fermée","Le back control","Le side control","La demi-garde"],a:1},
+{lvl:3,q:"En quelle année Zuffa (les frères Fertitta et Dana White) a-t-elle racheté l'UFC ?",o:["1997","2001","2005","2010"],a:1},
 // --- Palier 4 : PFL (difficile) ---
-{lvl:4,q:"Quelle est la limite de poids de la catégorie welter ?",o:["155 lbs","185 lbs","170 lbs","205 lbs"],a:2},
+{lvl:4,q:"Quelle est la limite de poids de la catégorie welter ?",o:["70,3 kg","83,9 kg","77,1 kg","92,9 kg"],a:2},
 {lvl:4,q:"Qui a remporté le tournoi de l'UFC 1 ?",o:["Ken Shamrock","Royce Gracie","Dan Severn","Gerard Gordeau"],a:1},
 {lvl:4,q:"La clé « kimura » tire son nom d'un maître de quelle discipline ?",o:["Le judo","Le karaté","La lutte","Le sambo"],a:0},
 {lvl:4,q:"Combien de juges officiels notent un combat ?",o:["2","3","4","5"],a:1},
 {lvl:4,q:"Quel système de notation est utilisé round par round ?",o:["Le comptage des coups","Le 10-point must system","Le vote du public","La moyenne pondérée"],a:1},
-// --- Palier 5 : UFC (très difficile) ---
+{lvl:4,q:"Lequel des premiers tournois UFC Royce Gracie n'a-t-il PAS remporté ?",o:["UFC 1","UFC 2","UFC 3","UFC 4"],a:2},
+{lvl:4,q:"Quel État américain a joué un rôle clé dans l'adoption des règles unifiées du MMA ?",o:["Le Nevada","Le New Jersey","La Californie","Le Texas"],a:1},
+{lvl:4,q:"Le tout premier combat féminin de l'UFC opposait Ronda Rousey à…",o:["Miesha Tate","Liz Carmouche","Cris Cyborg","Holly Holm"],a:1},
+{lvl:4,q:"Combien de défenses de titre consécutives Anderson Silva a-t-il réussies chez les moyens ?",o:["6","8","10","12"],a:2},
+{lvl:4,q:"Jon Jones est devenu le plus jeune champion de l'histoire de l'UFC à quel âge ?",o:["21 ans","23 ans","25 ans","27 ans"],a:1},
+{lvl:4,q:"En 2017, Georges St-Pierre a conquis un second titre dans quelle catégorie ?",o:["Poids welters","Poids moyens","Poids mi-lourds","Poids légers"],a:1},
+{lvl:4,q:"La « D'Arce » et l'« anaconda » sont des variantes de quel étranglement ?",o:["Du triangle de jambes","De l'étranglement en triangle de bras","De la guillotine","Du étranglement nord-sud"],a:1},
+{lvl:4,q:"Quelle organisation japonaise a été rachetée par les propriétaires de l'UFC en 2007 ?",o:["Shooto","RIZIN","PRIDE FC","DEEP"],a:2},
+{lvl:4,q:"Sous les règles unifiées, quel coup est interdit sur un adversaire au sol ?",o:["Le coup de poing au corps","Le coup de genou à la tête","Le coup de coude au corps","Le ground and pound"],a:1},
+{lvl:4,q:"Quel surnom Kazushi Sakuraba a-t-il gagné en battant plusieurs membres de la famille Gracie ?",o:["The Gracie Hunter","The Japanese Nightmare","The Submission King","The Tokyo Terror"],a:0},
+{lvl:4,q:"« The Korean Zombie » est le surnom de quel combattant ?",o:["Chan Sung Jung","Doo Ho Choi","Kwon Won Il","Jung Da Un"],a:0},
+{lvl:4,q:"Lors de quel événement Khabib a-t-il affronté McGregor en 2018 ?",o:["UFC 205","UFC 229","UFC 249","UFC 264"],a:1},
+{lvl:4,q:"La catégorie poids paille correspond à quelle limite ?",o:["48,9 kg","52,2 kg","56,7 kg","61,2 kg"],a:1},
+{lvl:4,q:"Fedor Emelianenko a dominé quelle organisation dans les années 2000 ?",o:["L'UFC","PRIDE FC","Strikeforce","ONE Championship"],a:1},
+{lvl:4,q:"Holly Holm a mis fin à l'invincibilité de Ronda Rousey avec quel coup ?",o:["Un uppercut","Un head kick","Un genou sauté","Un coup de coude"],a:1},
+// --- Palier 5 : UFC (très difficile, puristes) ---
 {lvl:5,q:"Quel score reçoit un round jugé parfaitement équilibré ?",o:["9-9","10-9","10-10","10-8"],a:2},
 {lvl:5,q:"Les coudes « 12-6 » (verticaux, de haut en bas) sont…",o:["Autorisés partout","Interdits par les règles unifiées","Autorisés au sol uniquement","Autorisés en championnat"],a:1},
 {lvl:5,q:"Dans quelle enceinte PRIDE FC organisait-il ses combats ?",o:["Une cage octogonale","Une cage circulaire","Un ring à cordes","Une plateforme surélevée"],a:2},
 {lvl:5,q:"Le « Twister » vient de quel système de jiu-jitsu ?",o:["Gracie Barra","10th Planet","Alliance","Checkmat"],a:1},
 {lvl:5,q:"Après un coup bas accidentel, l'arbitre peut accorder jusqu'à…",o:["1 minute","2 minutes","5 minutes","10 minutes"],a:2},
-{lvl:5,q:"Que signifie une décision « No Contest » ?",o:["Victoire aux points","Combat annulé, sans vainqueur ni perdant","Égalité parfaite","Report du combat"],a:1}
+{lvl:5,q:"Que signifie une décision « No Contest » ?",o:["Victoire aux points","Combat annulé, sans vainqueur ni perdant","Égalité parfaite","Report du combat"],a:1},
+{lvl:5,q:"Qui a remporté le tournoi de l'UFC 3 ?",o:["Royce Gracie","Ken Shamrock","Steve Jennum","Harold Howard"],a:2},
+{lvl:5,q:"Qui est devenu le premier champion poids lourds officiel de l'UFC en 1997 ?",o:["Mark Coleman","Randy Couture","Dan Severn","Don Frye"],a:0},
+{lvl:5,q:"Le « Von Flue choke » s'utilise contre un adversaire qui…",o:["Tourne le dos","S'accroche à une guillotine","Monte en triangle","Reste en garde fermée"],a:1},
+{lvl:5,q:"Qui a réussi le premier « twister » de l'histoire de l'UFC en 2011 ?",o:["Eddie Bravo","Chan Sung Jung","Tony Ferguson","Aljamain Sterling"],a:1},
+{lvl:5,q:"En 2019, Jorge Masvidal a signé le KO le plus rapide de l'histoire de l'UFC en…",o:["3 secondes","5 secondes","8 secondes","11 secondes"],a:1},
+{lvl:5,q:"Quelle était la particularité du premier round dans PRIDE ?",o:["Il durait 10 minutes","Il était sans arbitre","Il se jouait sans gants","Il comptait double"],a:0},
+{lvl:5,q:"Dans PRIDE, les coups de pied au visage d'un adversaire au sol étaient…",o:["Interdits","Autorisés","Autorisés seulement en finale","Pénalisés d'un point"],a:1},
+{lvl:5,q:"Quel score traduit un round de domination totale, proche du finish ?",o:["10-9","10-10","10-8","9-8"],a:2},
+{lvl:5,q:"L'« oblique kick » cible principalement…",o:["La cuisse","Le genou","La cheville","Les côtes"],a:1},
+{lvl:5,q:"Fedor Emelianenko a-t-il combattu à l'UFC ?",o:["Oui, 3 combats","Oui, un seul combat","Non, jamais","Oui, sous un autre nom"],a:2},
+{lvl:5,q:"Quel coach a fondé le MMA Factory à Paris ?",o:["Fernand Lopez","Greg Jackson","Firas Zahabi","Javier Mendez"],a:0},
+{lvl:5,q:"Anderson Silva a perdu son titre des moyens en 2013 contre…",o:["Nick Diaz","Chael Sonnen","Chris Weidman","Michael Bisping"],a:2},
+{lvl:5,q:"Le tout premier tournoi de l'UFC devait déterminer…",o:["Le meilleur boxeur du monde","L'art martial le plus efficace","Le successeur de Bruce Lee","Le champion olympique de MMA"],a:1},
+{lvl:5,q:"Mauricio « Shogun » Rua a remporté le Grand Prix PRIDE de quelle année ?",o:["2003","2005","2007","2009"],a:1}
 ];
 CAREER_BANK.forEach((q,i)=>{ q.cid = i; });
 
@@ -848,10 +984,12 @@ function renderQuestion(){
   const optsWrap = document.getElementById('options');
   optsWrap.innerHTML = '';
   optsWrap.onclick = null;
-  q.o.forEach((optText,i)=>{
+  // ordre des réponses mélangé à chaque affichage
+  shuffle([0,1,2,3]).forEach(i=>{
     const btn = document.createElement('button');
     btn.className = 'opt';
-    btn.textContent = optText;
+    btn.dataset.i = i;
+    btn.textContent = q.o[i];
     btn.addEventListener('click', (e)=>{
       if(state.answered) return; // already answered: let the click bubble to the skip-to-next handler
       e.stopPropagation();
@@ -898,8 +1036,8 @@ function selectAnswer(i){
 
   document.getElementById('score-live').textContent = `${player.score} pts`;
 
-  const opts = document.querySelectorAll('#options .opt');
-  opts.forEach((btn,idx)=>{
+  document.querySelectorAll('#options .opt').forEach(btn=>{
+    const idx = parseInt(btn.dataset.i);
     btn.classList.add('disabled');
     if(idx === q.a) btn.classList.add('correct');
     else if(idx === i) btn.classList.add('wrong');
@@ -996,11 +1134,16 @@ function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
 function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
 
 const JOKER_DEFS = [
-  {key:'fifty',  ico:'🎯', lbl:"L'œil du coach"},
-  {key:'crowd',  ico:'📊', lbl:"L'aréna vote"},
-  {key:'call',   ico:'📞', lbl:"Coup de fil"},
-  {key:'swap',   ico:'🚑', lbl:"Adversaire blessé"},
-  {key:'cutman', ico:'🩹', lbl:"Le cutman", passive:true}
+  {key:'fifty',  ico:'🎯', lbl:"L'œil du coach",
+    desc:"Le coach a repéré les failles : 2 mauvaises réponses sont éliminées, il n'en reste que 2."},
+  {key:'crowd',  ico:'📊', lbl:"L'aréna vote",
+    desc:"Le public de l'aréna vote pour la réponse. La majorité est souvent fiable… mais la foule peut se tromper."},
+  {key:'call',   ico:'📞', lbl:"Coup de fil",
+    desc:"Un appel au vestiaire : ton coin te souffle une réponse, avec plus ou moins de certitude."},
+  {key:'swap',   ico:'🚑', lbl:"Adversaire blessé",
+    desc:"Ton adversaire déclare forfait : la question est remplacée par une autre du même palier, sans pénalité."},
+  {key:'cutman', ico:'🩹', lbl:"Le cutman", passive:true,
+    desc:"Filet de sécurité AUTOMATIQUE : la première mauvaise réponse de la run est absorbée au lieu du TKO. Tu n'as rien à activer."}
 ];
 
 let cs = null; // état de la run carrière en cours
@@ -1107,17 +1250,20 @@ function careerRenderQuestion(){
   retireBtn.style.display = '';
   document.getElementById('c-lock-bar').classList.remove('show');
   document.getElementById('c-bubble-row').style.display = 'none';
+  careerJokerHideConfirm();
 
   const out = document.getElementById('c-joker-out');
   out.classList.remove('show'); out.innerHTML = '';
 
+  // ordre d'affichage des réponses mélangé, mémorisé (stable si refresh)
+  if(cs.ordQ !== q.cid || !cs.ord){ cs.ord = shuffle([0,1,2,3]); cs.ordQ = q.cid; }
   const wrap = document.getElementById('c-options');
   wrap.innerHTML = '';
-  q.o.forEach((optText, i)=>{
+  cs.ord.forEach(i=>{
     const btn = document.createElement('button');
     btn.className = 'opt';
     btn.dataset.i = i;
-    btn.textContent = optText;
+    btn.textContent = q.o[i];
     btn.addEventListener('click', ()=> careerPick(i));
     wrap.appendChild(btn);
   });
@@ -1137,12 +1283,42 @@ function careerRenderJokers(){
     const b = document.createElement('button');
     b.className = 'joker-btn' + (cs.jokers[def.key] ? ' used' : '') + (def.passive ? ' passive' : '');
     b.innerHTML = `<span class="j-ico">${def.ico}</span><span class="j-lbl">${def.lbl}</span>`;
-    if(!def.passive && !cs.jokers[def.key]){
-      b.addEventListener('click', ()=> careerUseJoker(def.key));
+    if(!cs.jokers[def.key]){
+      b.addEventListener('click', ()=> careerJokerAsk(def.key));
     }
     bar.appendChild(b);
   });
 }
+
+/* ---------- confirmation avant d'utiliser un joker ---------- */
+let pendingJoker = null;
+
+function careerJokerAsk(key){
+  if(cLocked || cs.jokers[key]) return;
+  const def = JOKER_DEFS.find(d=>d.key===key);
+  pendingJoker = def.passive ? null : key;
+  document.getElementById('jc-ico').textContent = def.ico;
+  document.getElementById('jc-name').textContent = def.lbl;
+  document.getElementById('jc-desc').textContent = def.desc;
+  document.getElementById('jc-warn').textContent = def.passive
+    ? "⚠️ S'il se déclenche, le titre de Double Champion est perdu pour cette run."
+    : "⚠️ Un joker consommé ne revient pas, et le titre de Double Champion sera perdu pour cette run.";
+  document.getElementById('jc-yes').style.display = def.passive ? 'none' : '';
+  document.getElementById('jc-no').textContent = def.passive ? 'Compris' : 'Annuler';
+  document.getElementById('c-joker-confirm').classList.add('show');
+}
+
+function careerJokerHideConfirm(){
+  pendingJoker = null;
+  document.getElementById('c-joker-confirm').classList.remove('show');
+}
+
+document.getElementById('jc-yes').addEventListener('click', ()=>{
+  const key = pendingJoker;
+  careerJokerHideConfirm();
+  if(key) careerUseJoker(key);
+});
+document.getElementById('jc-no').addEventListener('click', careerJokerHideConfirm);
 
 function careerPick(i){
   if(cLocked) return;
@@ -1178,9 +1354,11 @@ function careerUseJoker(key){
     w[q.a] += 30 + Math.random()*30;
     const total = w.reduce((s,x)=>s+x,0);
     const pct = w.map(x=> Math.round(100*x/total));
+    const disp = (cs.ordQ === q.cid && cs.ord) ? cs.ord : [0,1,2,3];
     let html = '<b>📊 L\'aréna vote :</b>';
-    ['A','B','C','D'].forEach((L,i)=>{
-      html += `<div class="vote-row"><span class="v-letter">${L}</span><div class="vote-track"><div class="vote-fill" style="width:${pct[i]}%"></div></div><span>${pct[i]}%</span></div>`;
+    disp.forEach(oi=>{
+      const short = q.o[oi].length > 20 ? q.o[oi].slice(0,19)+'…' : q.o[oi];
+      html += `<div class="vote-row"><span style="flex:0 0 40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${short}</span><div class="vote-track"><div class="vote-fill" style="width:${pct[oi]}%"></div></div><span>${pct[oi]}%</span></div>`;
     });
     cs.hintHtml = html; cs.hintQ = q.cid;
     out.innerHTML = html; out.classList.add('show');
@@ -1224,10 +1402,41 @@ function careerApplyElim(elim){
   });
 }
 
+/* ---------- effets visuels ---------- */
+// Foule en délire : jaillissement d'emojis + flash doré (bonne réponse)
+function fxCrowd(){
+  const layer = document.getElementById('fx-layer');
+  const flash = document.getElementById('fx-flash');
+  flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go');
+  const emojis = ['🎉','🙌','🔥','👏','⭐','📣','🥊'];
+  for(let i=0;i<18;i++){
+    const s = document.createElement('span');
+    s.className = 'fx-emoji';
+    s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    s.style.left = (4 + Math.random()*92) + '%';
+    s.style.animationDelay = (Math.random()*0.3) + 's';
+    s.style.fontSize = (20 + Math.random()*20) + 'px';
+    s.style.setProperty('--rot', (Math.random()*70 - 35) + 'deg');
+    layer.appendChild(s);
+    setTimeout(()=> s.remove(), 2000);
+  }
+}
+
+// KO plein écran + secousse, puis callback (game over)
+function fxKO(cb){
+  const ko = document.getElementById('ko-layer');
+  const app = document.getElementById('app');
+  ko.classList.remove('show'); void ko.offsetWidth; ko.classList.add('show');
+  app.classList.add('shake');
+  setTimeout(()=> app.classList.remove('shake'), 600);
+  setTimeout(()=>{ ko.classList.remove('show'); cb(); }, 2100);
+}
+
 /* ---------- verrouillage & résolution ---------- */
 document.getElementById('c-lock-btn').addEventListener('click', ()=>{
   if(cLocked || cPicked === null) return;
   cLocked = true;
+  careerJokerHideConfirm();
   const q = careerCurrentQ();
   const correct = cPicked === q.a;
 
@@ -1244,7 +1453,8 @@ document.getElementById('c-lock-btn').addEventListener('click', ()=>{
   if(correct){
     cs.score += careerQPts();
     document.getElementById('c-score').textContent = cs.score;
-    setTimeout(careerContinue, 1500);
+    fxCrowd();
+    setTimeout(careerContinue, 1600);
   } else if(!cs.jokers.cutman){
     // LE CUTMAN absorbe la défaite (une seule fois par run)
     cs.jokers.cutman = true;
@@ -1256,7 +1466,7 @@ document.getElementById('c-lock-btn').addEventListener('click', ()=>{
   } else {
     // Défaite par TKO : on retombe au dernier contrat signé
     cs.score = cs.checkpoint;
-    setTimeout(()=> careerEnd('tko'), 1500);
+    setTimeout(()=> fxKO(()=> careerEnd('tko')), 900);
   }
 });
 
