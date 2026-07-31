@@ -204,6 +204,44 @@
   .lb-score{font-weight:800;font-size:17px;}
   .crown{font-size:20px;}
 
+  /* ---- Mode Carrière : "Qui sera le prochain champion ?" ---- */
+  .btn-career{background:linear-gradient(135deg,#4a3a08,#241d05);border:1px solid var(--gold);box-shadow:0 8px 24px rgba(212,175,55,.18);}
+  .promo-row{display:flex;gap:12px;align-items:flex-start;margin:14px 0 18px;width:100%;}
+  .promo-avatar{width:64px;height:64px;flex-shrink:0;border-radius:16px;background:linear-gradient(160deg,#23232b,#101014);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;}
+  .promo-bubble{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.5;color:var(--text);flex:1;text-align:left;}
+  .promo-bubble::before{content:'';position:absolute;left:-7px;top:22px;width:12px;height:12px;background:var(--card);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg);}
+  .promo-name{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
+  .career-ladder{display:flex;flex-direction:column-reverse;gap:6px;margin:6px 0 18px;}
+  .ladder-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:700;}
+  .ladder-row .l-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .ladder-row .l-pts{margin-left:auto;color:var(--muted);font-weight:600;font-size:12px;}
+  .career-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+  .org-badge{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;padding:4px 14px;border-radius:8px;color:#0a0a0d;background:var(--org,#d4af37);}
+  .career-meta{display:flex;gap:8px;font-size:12px;color:var(--muted);flex-wrap:wrap;margin-bottom:12px;}
+  .meta-chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-weight:600;}
+  .meta-chip b{color:var(--text);}
+  .jokers-bar{display:flex;gap:8px;margin:14px 0 4px;}
+  .joker-btn{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 3px;color:var(--text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .joker-btn .j-ico{font-size:19px;}
+  .joker-btn .j-lbl{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--muted);text-align:center;line-height:1.25;}
+  .joker-btn.used{opacity:.28;pointer-events:none;}
+  .joker-btn.passive{cursor:default;border-style:dashed;}
+  .joker-out{margin-top:12px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.5;display:none;}
+  .joker-out.show{display:block;}
+  .vote-row{display:flex;align-items:center;gap:8px;font-size:12.5px;margin:4px 0;}
+  .vote-row .v-letter{width:16px;font-weight:800;color:var(--muted);}
+  .vote-track{flex:1;height:10px;background:var(--card);border-radius:99px;overflow:hidden;border:1px solid var(--line);}
+  .vote-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));}
+  .retire-btn{margin-top:14px;background:transparent;border:1px dashed var(--line);color:var(--muted);border-radius:12px;padding:12px;font-size:13.5px;font-weight:700;cursor:pointer;width:100%;}
+  .retire-btn.confirm{border-color:var(--gold);color:var(--gold);}
+  .lock-bar{display:none;margin-top:14px;}
+  .lock-bar.show{display:flex;}
+  .lock-bar .primary-btn{margin-top:0;flex:1;padding:14px;font-size:16px;}
+  .opt.picked{border-color:var(--gold);background:rgba(212,175,55,.12);}
+  .contract-org{font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:1;color:var(--org,#d4af37);margin:8px 0;}
+  .title-fight .contract-org{text-shadow:0 0 34px rgba(212,175,55,.65);}
+  .end-outcome{font-family:'Bebas Neue',sans-serif;font-size:46px;line-height:1.05;margin:4px 0;}
+
   ::selection{background:var(--red);color:#fff;}
 </style>
 </head>
@@ -222,6 +260,9 @@
       </button>
       <button class="big-btn btn-solo" id="btn-solo">
         <span><span class="emoji">🎯</span> Solo<span class="sub">Fais ton propre combat, seul contre le chrono</span></span>
+      </button>
+      <button class="big-btn btn-career" id="btn-career">
+        <span><span class="emoji">🏆</span> Qui sera le prochain champion ?<span class="sub">Mode carrière : de la rue au titre UFC</span></span>
       </button>
     </div>
     <div class="rules-toggle" id="rules-toggle">Comment ça marche ?</div>
@@ -315,12 +356,170 @@
     <button class="ghost-btn" id="replay-new-btn">Nouvelle partie</button>
   </div>
 
+  <!-- ===================== MODE CARRIÈRE ===================== -->
+
+  <!-- CAREER INTRO -->
+  <div class="screen" id="screen-career-intro">
+    <div class="top-row"><span class="back-link" data-back="home">← Menu</span></div>
+    <h2 class="screen-title">Qui sera le prochain champion ?</h2>
+    <div class="promo-row">
+      <div class="promo-avatar">
+        <svg viewBox="0 0 64 64" width="46" height="46" aria-hidden="true">
+          <circle cx="32" cy="21" r="12" fill="#d4af37"/>
+          <rect x="21" y="17" width="22" height="5.5" rx="2.75" fill="#0a0a0d"/>
+          <path d="M9 58 Q32 30 55 58 Z" fill="#e10600"/>
+          <rect x="29" y="32" width="6" height="7" fill="#d4af37"/>
+          <rect x="30.4" y="40" width="3.2" height="13" rx="1.2" fill="#f5f5f7"/>
+        </svg>
+      </div>
+      <div class="promo-bubble"><div class="promo-name"></div><span id="career-intro-line"></span></div>
+    </div>
+    <div class="career-ladder" id="career-ladder"></div>
+    <button class="primary-btn" id="career-start-btn">Commencer la carrière</button>
+    <button class="ghost-btn" id="career-resume-btn" style="display:none;">Reprendre la run en cours</button>
+  </div>
+
+  <!-- CAREER GAME -->
+  <div class="screen" id="screen-career-game">
+    <div class="career-top">
+      <span class="org-badge" id="c-org-badge">—</span>
+      <span class="qcount" id="c-qcount">—</span>
+    </div>
+    <div class="career-meta">
+      <span class="meta-chip">Score <b id="c-score">0</b></span>
+      <span class="meta-chip">Garanti 🔒 <b id="c-checkpoint">0</b></span>
+      <span class="meta-chip">Cette question <b id="c-qpts">—</b></span>
+    </div>
+    <div class="qcard"><div class="qtext" id="c-qtext">…</div></div>
+    <div class="options" id="c-options"></div>
+    <div class="joker-out" id="c-joker-out"></div>
+    <div class="promo-row" id="c-bubble-row" style="display:none;margin:12px 0 0;">
+      <div class="promo-avatar" style="width:44px;height:44px;">
+        <svg viewBox="0 0 64 64" width="32" height="32" aria-hidden="true">
+          <circle cx="32" cy="21" r="12" fill="#d4af37"/>
+          <rect x="21" y="17" width="22" height="5.5" rx="2.75" fill="#0a0a0d"/>
+          <path d="M9 58 Q32 30 55 58 Z" fill="#e10600"/>
+        </svg>
+      </div>
+      <div class="promo-bubble"><div class="promo-name"></div><span id="c-bubble-text"></span></div>
+    </div>
+    <div class="lock-bar" id="c-lock-bar"><button class="primary-btn" id="c-lock-btn">Verrouiller la réponse</button></div>
+    <div class="jokers-bar" id="c-jokers"></div>
+    <button class="retire-btn" id="c-retire-btn">🏳️ Prendre sa retraite — encaisser <span id="c-retire-pts">0</span> pts</button>
+  </div>
+
+  <!-- CAREER CONTRACT / TITLE FIGHT -->
+  <div class="screen center-card" id="screen-career-contract">
+    <div class="screen-sub" id="c-contract-kicker">Contrat signé ✍️</div>
+    <div class="contract-org" id="c-contract-org">—</div>
+    <div class="round-detail" id="c-contract-detail">—</div>
+    <div class="promo-row">
+      <div class="promo-avatar">
+        <svg viewBox="0 0 64 64" width="46" height="46" aria-hidden="true">
+          <circle cx="32" cy="21" r="12" fill="#d4af37"/>
+          <rect x="21" y="17" width="22" height="5.5" rx="2.75" fill="#0a0a0d"/>
+          <path d="M9 58 Q32 30 55 58 Z" fill="#e10600"/>
+          <rect x="29" y="32" width="6" height="7" fill="#d4af37"/>
+          <rect x="30.4" y="40" width="3.2" height="13" rx="1.2" fill="#f5f5f7"/>
+        </svg>
+      </div>
+      <div class="promo-bubble"><div class="promo-name"></div><span id="c-contract-bubble"></span></div>
+    </div>
+    <button class="primary-btn" id="c-contract-btn">Monter dans la cage</button>
+  </div>
+
+  <!-- CAREER END -->
+  <div class="screen center-card" id="screen-career-end">
+    <div class="end-outcome" id="c-end-title">—</div>
+    <div class="round-score display" id="c-end-score">0</div>
+    <div class="round-detail" id="c-end-detail">—</div>
+    <div class="promo-row">
+      <div class="promo-avatar">
+        <svg viewBox="0 0 64 64" width="46" height="46" aria-hidden="true">
+          <circle cx="32" cy="21" r="12" fill="#d4af37"/>
+          <rect x="21" y="17" width="22" height="5.5" rx="2.75" fill="#0a0a0d"/>
+          <path d="M9 58 Q32 30 55 58 Z" fill="#e10600"/>
+          <rect x="29" y="32" width="6" height="7" fill="#d4af37"/>
+          <rect x="30.4" y="40" width="3.2" height="13" rx="1.2" fill="#f5f5f7"/>
+        </svg>
+      </div>
+      <div class="promo-bubble"><div class="promo-name"></div><span id="c-end-bubble"></span></div>
+    </div>
+    <button class="primary-btn" id="c-replay-btn">Rejouer</button>
+    <button class="ghost-btn" id="c-menu-btn">Menu</button>
+  </div>
+
   <div class="points-popup" id="points-popup"></div>
 </div>
 
 <script>
+/* =========================================================================
+   TKO — RÉGLAGES GLOBAUX
+   Tout ce qui se règle facilement est regroupé ici.
+   ========================================================================= */
+
+/* ----- MODE CARRIÈRE : "Qui sera le prochain champion ?" ----- */
+// Personnage 100% FICTIF — aucun lien avec une personne réelle.
+const NOM_PRESENTATEUR = 'Vince "KO" Marconi';
+
+// Les 5 paliers de la carrière. nbQ = questions à réussir dans l'org,
+// pts = points par question. accent = couleur d'ambiance de l'org.
+const CAREER_ORGS = [
+  {name:"LA RUE",       lvl:1, nbQ:3, pts:50,  accent:"#8a8a94", intro:"Pas de cage, pas de règles, pas de public. Juste toi."},
+  {name:"MMA AMATEUR",  lvl:2, nbQ:4, pts:100, accent:"#22c55e", intro:"Premiers gants, premières cages. Le vrai départ."},
+  {name:"HEXAGONE MMA", lvl:3, nbQ:4, pts:200, accent:"#3b82f6", intro:"La scène nationale. Les projecteurs s'allument."},
+  {name:"PFL",          lvl:4, nbQ:4, pts:350, accent:"#e10600", intro:"Le grand bain international. Ça ne pardonne plus."},
+  {name:"UFC",          lvl:5, nbQ:5, pts:500, accent:"#d4af37", intro:"Le sommet. Dernière marche avant la ceinture."}
+];
+const TITLE_QUESTION_PTS  = 1000; // la toute dernière question (combat de titre)
+const CHAMPION_BONUS      = 1000; // bonus en cas de victoire au titre
+const DOUBLE_CHAMPION_BONUS = 2500; // bonus supplémentaire si AUCUN joker utilisé
+const CAREER_SAVE_KEY = 'tko_career_save_v1'; // clé localStorage (reprise de run)
+
+// Répliques du Promoteur — éditables librement. {ORG} {SCORE} {NOM} sont remplacés.
+const PROMO_LINES = {
+  intro: [
+    "Mesdames et messieurs… j'ai vu ce gamin se battre. {NOM} vous le dit : on tient peut-être le prochain champion !",
+    "La rue, les petites salles, la lumière… tout le monde commence quelque part. Montre-moi ce que tu as dans le ventre !",
+    "J'ai promis un show au public. Toi, promets-moi de ne jamais reculer. Marché conclu ?"
+  ],
+  contract: [
+    "Signe ici, champion. {ORG}, c'est une autre planète — et ton argent est à l'abri : {SCORE} points, personne ne peut te les reprendre !",
+    "Le contrat est sur la table ! Bienvenue chez {ORG}. À partir d'ici, ça cogne plus fort.",
+    "{ORG}… j'ai fait des pieds et des mains pour ce deal. Ne me fais pas regretter !"
+  ],
+  beforeTitle: [
+    "C'est LE soir. La ceinture est là, à une question. Respire… et rends-moi fier.",
+    "Vingt ans que je fais ce métier, et j'en ai encore des frissons. Le combat de titre. Tout ou rien."
+  ],
+  champion: [
+    "ET NOUVEAU… CHAMPION DU MONDE ! Je le savais ! JE LE SAVAIS !",
+    "La ceinture ! Elle est à toi ! Ce soir, tout le monde connaît ton nom !"
+  ],
+  doubleChampion: [
+    "Sans JOKER ?! Personne n'a jamais fait ça. DOUBLE CHAMPION — une légende est née ce soir !",
+    "Invaincu, sans aide, sans filet. Je n'ai plus rien à t'apprendre… DOUBLE CHAMPION !"
+  ],
+  tko: [
+    "Aïe… le rideau tombe. Mais tu repars avec {SCORE} points — le contrat, c'est le contrat.",
+    "TKO ! C'est brutal, c'est le MMA. On se relève et on revient plus fort, tu m'entends ?"
+  ],
+  joker: [
+    "Un coup de pouce ? Pas de honte, tous les grands l'ont fait… mais dis adieu au titre suprême.",
+    "OK, on joue la carte. Mais je note tout, hein."
+  ],
+  cutman: [
+    "LE CUTMAN te sauve ! Recolle-toi ça et retourne au combat — c'était ta seule chance.",
+    "Ouh, ça saignait ! Le cutman a fait des miracles. Plus de filet maintenant."
+  ],
+  retire: [
+    "Se retirer invaincu, avec {SCORE} points en poche… c'est ce que font les plus malins. Respect.",
+    "Tu raccroches les gants au sommet. Le public est debout !"
+  ]
+};
+
 /* =========================================================
-   TKO — Banque de questions
+   TKO — Banque de questions (modes Équipe & Solo)
    t: 1=Rookie(100) 2=Connaisseur(200) 3=Puriste(300) 4=Cage IQ(250)
    o: 4 options, a: index de la bonne réponse
    e: (optionnel) petite explication affichée après la réponse
@@ -415,6 +614,47 @@ const BANK = [
 const POINTS = {1:100, 2:200, 3:300, 4:250};
 const TIER_LABEL = {1:"ROOKIE", 2:"CONNAISSEUR", 3:"PURISTE", 4:"CAGE IQ"};
 BANK.forEach((q,i)=>{ q.id = i; q.pts = POINTS[q.t]; });
+
+/* =========================================================
+   BANQUE DU MODE CARRIÈRE (séparée des autres modes)
+   lvl: 1=Rue 2=Amateur 3=Hexagone 4=PFL 5=UFC
+   Questions PLACEHOLDER (faits intemporels, vérifiés) pour câbler
+   la mécanique — à remplacer/enrichir par la vraie banque étagée.
+   ========================================================= */
+// >>> AJOUTER LES QUESTIONS DE CARRIÈRE ICI <<<
+const CAREER_BANK = [
+// --- Palier 1 : LA RUE (très facile) ---
+{lvl:1,q:"Dans quelle enceinte se battent les combattants de l'UFC ?",o:["Un ring à cordes","Une cage octogonale","Une fosse","Un tatami"],a:1},
+{lvl:1,q:"Comment un combattant signale-t-il qu'il abandonne ?",o:["Il lève le pouce","Il ferme les yeux","Il tape sur le sol ou l'adversaire","Il siffle"],a:2},
+{lvl:1,q:"Lequel de ces gestes est INTERDIT en MMA ?",o:["Le coup de genou","La morsure","Le coup de pied","La projection"],a:1},
+{lvl:1,q:"Que veut dire « KO » ?",o:["Kick-out","King of the Octagon","Knock-out","Knee only"],a:2},
+// --- Palier 2 : MMA AMATEUR (facile) ---
+{lvl:2,q:"Quel art martial brésilien est la référence du combat au sol ?",o:["La capoeira","Le jiu-jitsu brésilien","Le taekwondo","Le krav maga"],a:1},
+{lvl:2,q:"Quels gants portent les combattants MMA ?",o:["Des gants de boxe classiques","Des mitaines à doigts libres","Des gants de gardien","Aucun gant"],a:1},
+{lvl:2,q:"Comment s'appelle la cage emblématique de l'UFC ?",o:["Le Colisée","L'Hexagone","L'Octogone","Le Dôme"],a:2},
+{lvl:2,q:"Combien de rounds compte un combat MMA classique (hors titre) ?",o:["3","5","7","2"],a:0},
+{lvl:2,q:"Quel mot désigne une victoire par étranglement ou clé ?",o:["Décision","KO","Soumission","Forfait"],a:2},
+// --- Palier 3 : HEXAGONE MMA (moyen) ---
+{lvl:3,q:"Combien de temps dure un round en MMA professionnel ?",o:["3 minutes","4 minutes","5 minutes","6 minutes"],a:2},
+{lvl:3,q:"En quelle année s'est tenu l'UFC 1 ?",o:["1990","1993","1995","1998"],a:1},
+{lvl:3,q:"Quelle organisation mythique de MMA était basée au Japon ?",o:["PRIDE FC","Bellator","Cage Warriors","KSW"],a:0},
+{lvl:3,q:"Comment appelle-t-on l'étranglement pris dans le dos de l'adversaire ?",o:["La guillotine","Le rear-naked choke","Le triangle","Le kimura"],a:1},
+{lvl:3,q:"Combien de rounds compte un combat de championnat ?",o:["3","4","5","6"],a:2},
+// --- Palier 4 : PFL (difficile) ---
+{lvl:4,q:"Quelle est la limite de poids de la catégorie welter ?",o:["155 lbs","185 lbs","170 lbs","205 lbs"],a:2},
+{lvl:4,q:"Qui a remporté le tournoi de l'UFC 1 ?",o:["Ken Shamrock","Royce Gracie","Dan Severn","Gerard Gordeau"],a:1},
+{lvl:4,q:"La clé « kimura » tire son nom d'un maître de quelle discipline ?",o:["Le judo","Le karaté","La lutte","Le sambo"],a:0},
+{lvl:4,q:"Combien de juges officiels notent un combat ?",o:["2","3","4","5"],a:1},
+{lvl:4,q:"Quel système de notation est utilisé round par round ?",o:["Le comptage des coups","Le 10-point must system","Le vote du public","La moyenne pondérée"],a:1},
+// --- Palier 5 : UFC (très difficile) ---
+{lvl:5,q:"Quel score reçoit un round jugé parfaitement équilibré ?",o:["9-9","10-9","10-10","10-8"],a:2},
+{lvl:5,q:"Les coudes « 12-6 » (verticaux, de haut en bas) sont…",o:["Autorisés partout","Interdits par les règles unifiées","Autorisés au sol uniquement","Autorisés en championnat"],a:1},
+{lvl:5,q:"Dans quelle enceinte PRIDE FC organisait-il ses combats ?",o:["Une cage octogonale","Une cage circulaire","Un ring à cordes","Une plateforme surélevée"],a:2},
+{lvl:5,q:"Le « Twister » vient de quel système de jiu-jitsu ?",o:["Gracie Barra","10th Planet","Alliance","Checkmat"],a:1},
+{lvl:5,q:"Après un coup bas accidentel, l'arbitre peut accorder jusqu'à…",o:["1 minute","2 minutes","5 minutes","10 minutes"],a:2},
+{lvl:5,q:"Que signifie une décision « No Contest » ?",o:["Victoire aux points","Combat annulé, sans vainqueur ni perdant","Égalité parfaite","Report du combat"],a:1}
+];
+CAREER_BANK.forEach((q,i)=>{ q.cid = i; });
 
 // Distribution des tiers selon le nombre de questions par round
 const ROUND_DIST = {
@@ -744,6 +984,384 @@ document.getElementById('replay-new-btn').addEventListener('click', ()=>{
   state.players = [];
   showScreen('screen-home');
 });
+
+/* =========================================================================
+   MODE CARRIÈRE — "Qui sera le prochain champion ?"
+   Module autonome : ne touche à rien du mode quiz Équipe/Solo.
+   ========================================================================= */
+
+// --- localStorage sécurisé (peut être indisponible : navigation privée, etc.)
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+const JOKER_DEFS = [
+  {key:'fifty',  ico:'🎯', lbl:"L'œil du coach"},
+  {key:'crowd',  ico:'📊', lbl:"L'aréna vote"},
+  {key:'call',   ico:'📞', lbl:"Coup de fil"},
+  {key:'swap',   ico:'🚑', lbl:"Adversaire blessé"},
+  {key:'cutman', ico:'🩹', lbl:"Le cutman", passive:true}
+];
+
+let cs = null; // état de la run carrière en cours
+
+function pickLine(kind, vars){
+  const pool = PROMO_LINES[kind] || [''];
+  let line = pool[Math.floor(Math.random()*pool.length)];
+  const v = Object.assign({NOM: NOM_PRESENTATEUR}, vars || {});
+  Object.keys(v).forEach(k=>{ line = line.split('{'+k+'}').join(v[k]); });
+  return line;
+}
+
+function careerBuildQueues(){
+  const queues = {};
+  CAREER_ORGS.forEach((org, oi)=>{
+    let pool = shuffle(CAREER_BANK.filter(q=>q.lvl===org.lvl));
+    while(pool.length < org.nbQ){ pool = pool.concat(shuffle(CAREER_BANK.filter(q=>q.lvl===org.lvl))); }
+    queues[oi] = pool.slice(0, org.nbQ).map(q=>q.cid);
+  });
+  return queues;
+}
+
+function careerNewState(){
+  return {
+    orgIndex:0, qPos:0, score:0, checkpoint:0,
+    jokers:{fifty:false, crowd:false, call:false, swap:false, cutman:false},
+    jokerUsed:false,
+    queues: careerBuildQueues(),
+    // indices transitoires (survivent au refresh pour ne pas perdre un joker payé)
+    hintQ:null, hintHtml:null, elim:null
+  };
+}
+
+function careerSave(){ if(cs) lsSet(CAREER_SAVE_KEY, JSON.stringify(cs)); }
+function careerClearSave(){ lsDel(CAREER_SAVE_KEY); }
+function careerLoadSave(){
+  const raw = lsGet(CAREER_SAVE_KEY);
+  if(!raw) return null;
+  try{
+    const s = JSON.parse(raw);
+    if(typeof s.orgIndex!=='number' || s.orgIndex<0 || s.orgIndex>=CAREER_ORGS.length) return null;
+    if(typeof s.qPos!=='number' || s.qPos<0 || s.qPos>=CAREER_ORGS[s.orgIndex].nbQ) return null;
+    if(!s.queues || !s.jokers) return null;
+    return s;
+  }catch(e){ return null; }
+}
+
+function careerCurrentQ(){ return CAREER_BANK[cs.queues[cs.orgIndex][cs.qPos]]; }
+function careerIsTitleQ(){ return cs.orgIndex===CAREER_ORGS.length-1 && cs.qPos===CAREER_ORGS[cs.orgIndex].nbQ-1; }
+function careerQPts(){ return careerIsTitleQ() ? TITLE_QUESTION_PTS : CAREER_ORGS[cs.orgIndex].pts; }
+
+/* ---------- écran intro ---------- */
+function careerShowIntro(){
+  document.getElementById('career-intro-line').textContent = pickLine('intro');
+  const ladder = document.getElementById('career-ladder');
+  ladder.innerHTML = '';
+  CAREER_ORGS.forEach(org=>{
+    const row = document.createElement('div');
+    row.className = 'ladder-row';
+    row.innerHTML = `<span class="l-dot" style="background:${org.accent}"></span>${org.name}<span class="l-pts">${org.nbQ} q · ${org.pts} pts${org===CAREER_ORGS[CAREER_ORGS.length-1] ? ' · titre '+TITLE_QUESTION_PTS : ''}</span>`;
+    ladder.appendChild(row);
+  });
+  document.getElementById('career-resume-btn').style.display = careerLoadSave() ? 'block' : 'none';
+  showScreen('screen-career-intro');
+}
+document.getElementById('btn-career').addEventListener('click', careerShowIntro);
+document.getElementById('career-start-btn').addEventListener('click', ()=>{
+  cs = careerNewState();
+  careerSave();
+  careerRenderQuestion();
+});
+document.getElementById('career-resume-btn').addEventListener('click', ()=>{
+  const s = careerLoadSave();
+  if(!s){ careerShowIntro(); return; }
+  cs = s;
+  careerRenderQuestion();
+});
+
+/* ---------- rendu d'une question ---------- */
+let cPicked = null; // index de l'option sélectionnée (avant verrouillage)
+let cLocked = false;
+
+function careerApplyOrgTheme(){
+  const org = CAREER_ORGS[cs.orgIndex];
+  document.getElementById('screen-career-game').style.setProperty('--org', org.accent);
+  document.getElementById('screen-career-contract').style.setProperty('--org', org.accent);
+}
+
+function careerRenderQuestion(){
+  cPicked = null; cLocked = false;
+  const org = CAREER_ORGS[cs.orgIndex];
+  const q = careerCurrentQ();
+  careerApplyOrgTheme();
+
+  document.getElementById('c-org-badge').textContent = org.name + (careerIsTitleQ() ? ' · TITRE 🏆' : '');
+  document.getElementById('c-qcount').textContent = `Question ${cs.qPos+1}/${org.nbQ}`;
+  document.getElementById('c-score').textContent = cs.score;
+  document.getElementById('c-checkpoint').textContent = cs.checkpoint;
+  document.getElementById('c-qpts').textContent = '+' + careerQPts();
+  document.getElementById('c-qtext').textContent = q.q;
+  const retireBtn = document.getElementById('c-retire-btn');
+  retireBtn.classList.remove('confirm');
+  retireBtn.innerHTML = `🏳️ Prendre sa retraite — encaisser <span id="c-retire-pts">${cs.score}</span> pts`;
+  retireBtn.style.display = '';
+  document.getElementById('c-lock-bar').classList.remove('show');
+  document.getElementById('c-bubble-row').style.display = 'none';
+
+  const out = document.getElementById('c-joker-out');
+  out.classList.remove('show'); out.innerHTML = '';
+
+  const wrap = document.getElementById('c-options');
+  wrap.innerHTML = '';
+  q.o.forEach((optText, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.dataset.i = i;
+    btn.textContent = optText;
+    btn.addEventListener('click', ()=> careerPick(i));
+    wrap.appendChild(btn);
+  });
+
+  // restaurer les effets d'un joker déjà payé sur CETTE question (cas refresh)
+  if(cs.hintQ === q.cid && cs.hintHtml){ out.innerHTML = cs.hintHtml; out.classList.add('show'); }
+  if(cs.hintQ === q.cid && cs.elim){ careerApplyElim(cs.elim); }
+
+  careerRenderJokers();
+  showScreen('screen-career-game');
+}
+
+function careerRenderJokers(){
+  const bar = document.getElementById('c-jokers');
+  bar.innerHTML = '';
+  JOKER_DEFS.forEach(def=>{
+    const b = document.createElement('button');
+    b.className = 'joker-btn' + (cs.jokers[def.key] ? ' used' : '') + (def.passive ? ' passive' : '');
+    b.innerHTML = `<span class="j-ico">${def.ico}</span><span class="j-lbl">${def.lbl}</span>`;
+    if(!def.passive && !cs.jokers[def.key]){
+      b.addEventListener('click', ()=> careerUseJoker(def.key));
+    }
+    bar.appendChild(b);
+  });
+}
+
+function careerPick(i){
+  if(cLocked) return;
+  cPicked = i;
+  document.querySelectorAll('#c-options .opt').forEach(btn=>{
+    btn.classList.toggle('picked', parseInt(btn.dataset.i) === i);
+  });
+  document.getElementById('c-lock-bar').classList.add('show');
+}
+
+function careerBubble(kind, vars){
+  document.getElementById('c-bubble-text').textContent = pickLine(kind, vars);
+  document.getElementById('c-bubble-row').style.display = 'flex';
+}
+
+/* ---------- jokers ---------- */
+function careerUseJoker(key){
+  if(cLocked || cs.jokers[key]) return;
+  const q = careerCurrentQ();
+  cs.jokers[key] = true;
+  cs.jokerUsed = true;
+  const out = document.getElementById('c-joker-out');
+
+  if(key === 'fifty'){
+    const wrong = [0,1,2,3].filter(i=>i!==q.a);
+    const elim = shuffle(wrong).slice(0,2);
+    cs.elim = elim; cs.hintQ = q.cid;
+    careerApplyElim(elim);
+  }
+  else if(key === 'crowd'){
+    // votes biaisés vers la bonne réponse, avec du bruit
+    const w = [0,1,2,3].map(()=> 5 + Math.random()*25);
+    w[q.a] += 30 + Math.random()*30;
+    const total = w.reduce((s,x)=>s+x,0);
+    const pct = w.map(x=> Math.round(100*x/total));
+    let html = '<b>📊 L\'aréna vote :</b>';
+    ['A','B','C','D'].forEach((L,i)=>{
+      html += `<div class="vote-row"><span class="v-letter">${L}</span><div class="vote-track"><div class="vote-fill" style="width:${pct[i]}%"></div></div><span>${pct[i]}%</span></div>`;
+    });
+    cs.hintHtml = html; cs.hintQ = q.cid;
+    out.innerHTML = html; out.classList.add('show');
+  }
+  else if(key === 'call'){
+    const right = Math.random() < 0.75;
+    const suggestion = right ? q.a : shuffle([0,1,2,3].filter(i=>i!==q.a))[0];
+    const conf = right
+      ? ["« Sûr à 90%, c'est ça. Fonce. »","« J'ai vu ce combat cent fois : c'est ça, garanti. »"]
+      : ["« Hmm… je dirais ça, mais sans certitude. »","« Je pencherais pour ça… mais me cite pas. »"];
+    const html = `<b>📞 Le vestiaire :</b> ${conf[Math.floor(Math.random()*conf.length)]}<br>Le coach pointe : <b>« ${q.o[suggestion]} »</b>`;
+    cs.hintHtml = html; cs.hintQ = q.cid;
+    out.innerHTML = html; out.classList.add('show');
+  }
+  else if(key === 'swap'){
+    // remplace la question par une autre du même palier, sans pénalité
+    const inRun = new Set(Object.values(cs.queues).flat());
+    let candidates = CAREER_BANK.filter(x=>x.lvl===q.lvl && !inRun.has(x.cid));
+    if(!candidates.length) candidates = CAREER_BANK.filter(x=>x.lvl===q.lvl && x.cid!==q.cid);
+    const repl = shuffle(candidates)[0];
+    if(repl){
+      cs.queues[cs.orgIndex][cs.qPos] = repl.cid;
+      cs.hintQ = null; cs.hintHtml = null; cs.elim = null;
+      careerSave();
+      careerRenderQuestion();
+      careerBubble('joker');
+      return;
+    }
+  }
+  careerSave();
+  careerRenderJokers();
+  careerBubble('joker');
+}
+
+function careerApplyElim(elim){
+  document.querySelectorAll('#c-options .opt').forEach(btn=>{
+    if(elim.includes(parseInt(btn.dataset.i))){
+      btn.classList.add('dim','disabled');
+      if(cPicked === parseInt(btn.dataset.i)){ cPicked = null; btn.classList.remove('picked'); document.getElementById('c-lock-bar').classList.remove('show'); }
+    }
+  });
+}
+
+/* ---------- verrouillage & résolution ---------- */
+document.getElementById('c-lock-btn').addEventListener('click', ()=>{
+  if(cLocked || cPicked === null) return;
+  cLocked = true;
+  const q = careerCurrentQ();
+  const correct = cPicked === q.a;
+
+  document.getElementById('c-lock-bar').classList.remove('show');
+  document.getElementById('c-retire-btn').style.display = 'none';
+  document.querySelectorAll('#c-options .opt').forEach(btn=>{
+    const i = parseInt(btn.dataset.i);
+    btn.classList.add('disabled');
+    if(i === q.a) btn.classList.add('correct');
+    else if(i === cPicked) btn.classList.add('wrong');
+    else btn.classList.add('dim');
+  });
+
+  if(correct){
+    cs.score += careerQPts();
+    document.getElementById('c-score').textContent = cs.score;
+    setTimeout(careerContinue, 1500);
+  } else if(!cs.jokers.cutman){
+    // LE CUTMAN absorbe la défaite (une seule fois par run)
+    cs.jokers.cutman = true;
+    cs.jokerUsed = true;
+    careerRenderJokers();
+    careerBubble('cutman');
+    careerSave();
+    setTimeout(careerContinue, 2600);
+  } else {
+    // Défaite par TKO : on retombe au dernier contrat signé
+    cs.score = cs.checkpoint;
+    setTimeout(()=> careerEnd('tko'), 1500);
+  }
+});
+
+function careerContinue(){
+  cs.qPos += 1;
+  cs.hintQ = null; cs.hintHtml = null; cs.elim = null;
+  const org = CAREER_ORGS[cs.orgIndex];
+  if(cs.qPos >= org.nbQ){
+    if(cs.orgIndex === CAREER_ORGS.length-1){ careerWin(); return; }
+    // palier terminé : signature du contrat suivant = checkpoint garanti
+    cs.checkpoint = cs.score;
+    cs.orgIndex += 1;
+    cs.qPos = 0;
+    careerSave();
+    careerShowContract(false);
+  } else if(careerIsTitleQ()){
+    careerSave();
+    careerShowContract(true);
+  } else {
+    careerSave();
+    careerRenderQuestion();
+  }
+}
+
+function careerShowContract(isTitle){
+  const scr = document.getElementById('screen-career-contract');
+  careerApplyOrgTheme();
+  scr.classList.toggle('title-fight', isTitle);
+  if(isTitle){
+    document.getElementById('c-contract-kicker').textContent = '🔔 COMBAT DE TITRE';
+    document.getElementById('c-contract-org').textContent = 'LA CEINTURE';
+    document.getElementById('c-contract-detail').textContent = `Une seule question. ${TITLE_QUESTION_PTS} pts. Tout ou rien.`;
+    document.getElementById('c-contract-bubble').textContent = pickLine('beforeTitle');
+    document.getElementById('c-contract-btn').textContent = 'Marcher vers la cage';
+  } else {
+    const org = CAREER_ORGS[cs.orgIndex];
+    document.getElementById('c-contract-kicker').textContent = 'Contrat signé ✍️';
+    document.getElementById('c-contract-org').textContent = org.name;
+    document.getElementById('c-contract-detail').textContent = `${org.intro} — Score verrouillé : ${cs.checkpoint} pts 🔒`;
+    document.getElementById('c-contract-bubble').textContent = pickLine('contract', {ORG: org.name, SCORE: cs.checkpoint});
+    document.getElementById('c-contract-btn').textContent = 'Monter dans la cage';
+  }
+  showScreen('screen-career-contract');
+}
+document.getElementById('c-contract-btn').addEventListener('click', careerRenderQuestion);
+
+/* ---------- retraite ---------- */
+document.getElementById('c-retire-btn').addEventListener('click', ()=>{
+  if(cLocked) return;
+  const btn = document.getElementById('c-retire-btn');
+  if(!btn.classList.contains('confirm')){
+    btn.classList.add('confirm');
+    btn.textContent = `Confirmer la retraite à ${cs.score} pts ?`;
+    setTimeout(()=>{
+      if(btn.classList.contains('confirm') && !cLocked){
+        btn.classList.remove('confirm');
+        btn.innerHTML = `🏳️ Prendre sa retraite — encaisser <span id="c-retire-pts">${cs.score}</span> pts`;
+      }
+    }, 3500);
+    return;
+  }
+  careerEnd('retire');
+});
+
+/* ---------- fins de run ---------- */
+function careerWin(){
+  cs.score += CHAMPION_BONUS;
+  if(!cs.jokerUsed){
+    cs.score += DOUBLE_CHAMPION_BONUS;
+    careerEnd('double');
+  } else {
+    careerEnd('champion');
+  }
+}
+
+function careerEnd(kind){
+  careerClearSave();
+  const org = CAREER_ORGS[cs.orgIndex];
+  const jokersUsed = Object.keys(cs.jokers).filter(k=>cs.jokers[k]).length;
+  const conf = {
+    tko:      {title:'DÉFAITE PAR TKO 🥊', color:'var(--red)',  line:'tko',            detail:`Tombé chez ${org.name} — tu repars avec ton dernier contrat.`},
+    retire:   {title:'RETRAITE INVAINCUE 🏳️', color:'var(--text)', line:'retire',      detail:`Retiré chez ${org.name}, invaincu.`},
+    champion: {title:'CHAMPION UFC 🏆', color:'var(--gold)', line:'champion',           detail:`Bonus de titre : +${CHAMPION_BONUS} pts · ${jokersUsed} joker(s) utilisé(s).`},
+    double:   {title:'DOUBLE CHAMPION 👑', color:'var(--gold)', line:'doubleChampion',  detail:`Run parfaite, SANS joker. Bonus : +${CHAMPION_BONUS+DOUBLE_CHAMPION_BONUS} pts.`}
+  }[kind];
+  document.getElementById('c-end-title').textContent = conf.title;
+  document.getElementById('c-end-title').style.color = conf.color;
+  document.getElementById('c-end-score').textContent = cs.score + ' pts';
+  document.getElementById('c-end-score').style.color = conf.color;
+  document.getElementById('c-end-detail').textContent = conf.detail;
+  document.getElementById('c-end-bubble').textContent = pickLine(conf.line, {SCORE: cs.score});
+  showScreen('screen-career-end');
+}
+document.getElementById('c-replay-btn').addEventListener('click', ()=>{
+  cs = careerNewState();
+  careerSave();
+  careerRenderQuestion();
+});
+document.getElementById('c-menu-btn').addEventListener('click', ()=>{
+  cs = null;
+  showScreen('screen-home');
+});
+
+// Nom du présentateur injecté dans toutes les bulles
+document.querySelectorAll('.promo-name').forEach(el=>{ el.textContent = NOM_PRESENTATEUR; });
 </script>
 </body>
 </html>
