@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TKO — Le Quiz MMA</title>
+<meta name="description" content="TKO — le quiz MMA qui teste ta culture ET ton Fight IQ. Solo ou entre potes, un seul téléphone.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥊</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0d;
+    --bg2:#141418;
+    --card:#1c1c22;
+    --line:#2a2a32;
+    --text:#f5f5f7;
+    --muted:#9a9aa5;
+    --red:#e10600;
+    --red-dark:#9c0400;
+    --gold:#d4af37;
+    --green:#22c55e;
+    --blue:#3b82f6;
+    --purple:#a855f7;
+    --t1:#22c55e;
+    --t2:#3b82f6;
+    --t3:#d4af37;
+    --t4:#a855f7;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:radial-gradient(ellipse at top, #1a1a20 0%, #0a0a0d 60%);
+    color:var(--text);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    overflow-x:hidden;
+  }
+  .app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    padding:calc(20px + var(--safe-top)) 18px calc(24px + var(--safe-bottom));
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  h1,h2,h3,.display{
+    font-family:'Bebas Neue',Impact,sans-serif;
+    letter-spacing:0.5px;
+  }
+  .screen{display:none;flex:1;flex-direction:column;animation:fadeIn .35s ease;}
+  .screen.active{display:flex;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ---- Home ---- */
+  .logo-wrap{text-align:center;margin:32px 0 8px;}
+  .logo{
+    font-size:76px;
+    line-height:1;
+    background:linear-gradient(180deg,#fff 0%, var(--red) 55%, var(--red-dark) 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-shadow:0 6px 24px rgba(225,6,0,.25);
+  }
+  .tagline{color:var(--muted);font-size:15px;margin-top:-6px;text-align:center;}
+  .mode-btns{display:flex;flex-direction:column;gap:14px;margin-top:36px;}
+  .big-btn{
+    border:none;border-radius:16px;padding:20px 18px;
+    font-size:20px;font-weight:800;color:#fff;cursor:pointer;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .big-btn:active{transform:scale(.97);}
+  .big-btn .emoji{font-size:26px;}
+  .big-btn .sub{display:block;font-size:12.5px;font-weight:500;color:rgba(255,255,255,.75);margin-top:2px;}
+  .btn-solo{background:linear-gradient(135deg,#2b2b33,#1c1c22);border:1px solid var(--line);}
+  .btn-team{background:linear-gradient(135deg,var(--red),var(--red-dark));box-shadow:0 8px 24px rgba(225,6,0,.28);}
+
+  .rules-toggle{
+    margin-top:28px;text-align:center;color:var(--muted);font-size:13px;
+    cursor:pointer;text-decoration:underline;text-underline-offset:3px;
+  }
+  .rules-box{
+    margin-top:14px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:16px 16px;font-size:13.5px;color:var(--muted);line-height:1.55;
+    display:none;
+  }
+  .rules-box.open{display:block;}
+  .rules-box b{color:var(--text);}
+  .tier-pill{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:12px;padding:3px 9px;border-radius:999px;margin:3px 4px 3px 0;color:#0a0a0d;}
+  .pill-1{background:var(--t1);} .pill-2{background:var(--t2);color:#fff;} .pill-3{background:var(--t3);} .pill-4{background:var(--t4);color:#fff;}
+
+  .footer-credit{margin-top:auto;text-align:center;color:#4c4c55;font-size:11px;padding-top:24px;}
+
+  /* ---- Generic screen header ---- */
+  .top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+  .back-link{color:var(--muted);font-size:14px;cursor:pointer;user-select:none;}
+  h2.screen-title{font-size:34px;margin:0 0 4px;}
+  .screen-sub{color:var(--muted);font-size:14px;margin-bottom:18px;}
+
+  /* ---- Setup ---- */
+  .field-label{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:18px 0 8px;}
+  .add-row{display:flex;gap:8px;}
+  input[type=text]{
+    flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:14px 14px;color:var(--text);font-size:16px;font-family:inherit;
+  }
+  input[type=text]:focus{outline:none;border-color:var(--red);}
+  .add-btn{background:var(--red);color:#fff;border:none;border-radius:12px;padding:0 20px;font-weight:800;font-size:22px;cursor:pointer;}
+  .player-list{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+  .player-chip{
+    display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:10px 12px;
+  }
+  .dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;}
+  .player-chip .name{flex:1;font-weight:600;}
+  .remove-x{color:var(--muted);cursor:pointer;font-size:18px;padding:2px 6px;}
+  .empty-hint{color:#5a5a63;font-size:13px;margin-top:10px;font-style:italic;}
+
+  .seg{display:flex;gap:8px;flex-wrap:wrap;}
+  .seg button{
+    flex:1;min-width:60px;background:var(--card);border:1px solid var(--line);color:var(--text);
+    padding:12px 8px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;
+  }
+  .seg button.selected{background:var(--red);border-color:var(--red);}
+
+  .primary-btn{
+    margin-top:28px;background:linear-gradient(135deg,var(--red),var(--red-dark));
+    color:#fff;border:none;border-radius:16px;padding:18px;font-size:19px;font-weight:800;
+    cursor:pointer;box-shadow:0 8px 24px rgba(225,6,0,.28);
+  }
+  .primary-btn:disabled{background:#3a3a42;box-shadow:none;color:#6b6b75;cursor:not-allowed;}
+  .ghost-btn{
+    margin-top:12px;background:transparent;border:1px solid var(--line);color:var(--text);
+    border-radius:16px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;
+  }
+
+  /* ---- Pass screen ---- */
+  .pass-screen{align-items:center;justify-content:center;text-align:center;flex:1;}
+  .pass-glove{font-size:64px;margin-bottom:10px;}
+  .pass-name{font-size:46px;margin:6px 0 2px;}
+  .pass-sub{color:var(--muted);font-size:15px;margin-bottom:36px;}
+
+  /* ---- Game ---- */
+  .game-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .qcount{color:var(--muted);font-size:13px;font-weight:700;}
+  .score-live{font-weight:800;font-size:16px;}
+  .timerbar-track{height:8px;background:var(--card);border-radius:999px;overflow:hidden;margin-bottom:16px;}
+  .timerbar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--red));border-radius:999px;transition:width .1s linear;}
+  .tier-badge{
+    display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;
+    padding:5px 12px;border-radius:999px;color:#0a0a0d;margin-bottom:14px;
+  }
+  .qcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:18px;}
+  .qtext{font-size:19px;font-weight:700;line-height:1.4;}
+  .options{display:flex;flex-direction:column;gap:10px;}
+  .opt{
+    background:var(--card);border:1.5px solid var(--line);color:var(--text);
+    padding:16px 16px;border-radius:14px;font-size:15.5px;font-weight:600;text-align:left;
+    cursor:pointer;transition:border-color .15s,background .15s;
+  }
+  .opt:active{transform:scale(.99);}
+  .opt.correct{background:rgba(34,197,94,.18);border-color:var(--green);}
+  .opt.wrong{background:rgba(225,6,0,.18);border-color:var(--red);}
+  .opt.disabled{pointer-events:none;}
+  .opt.dim{opacity:.45;}
+  .reveal-note{
+    margin-top:14px;padding:12px 14px;background:rgba(255,255,255,.04);border-left:3px solid var(--gold);
+    border-radius:0 10px 10px 0;font-size:13.5px;color:var(--muted);line-height:1.5;display:none;
+  }
+  .reveal-note.show{display:block;}
+  .points-popup{
+    position:fixed;top:40%;left:50%;transform:translate(-50%,-50%) scale(.6);
+    font-family:'Bebas Neue',sans-serif;font-size:54px;font-weight:400;color:var(--gold);
+    opacity:0;pointer-events:none;z-index:50;text-shadow:0 4px 20px rgba(212,175,55,.5);
+    transition:all .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .points-popup.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  .points-popup.zero{color:var(--muted);font-size:32px;}
+  .tap-hint{text-align:center;color:#5a5a63;font-size:12px;margin-top:auto;padding-top:14px;}
+
+  /* ---- Round end / final ---- */
+  .screen.center-card{align-items:center;justify-content:center;text-align:center;}
+  .round-score{font-size:64px;margin:6px 0;}
+  .round-detail{color:var(--muted);font-size:15px;margin-bottom:8px;}
+  .leaderboard{display:flex;flex-direction:column;gap:10px;margin:20px 0;width:100%;}
+  .lb-row{
+    display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:14px 16px;
+  }
+  .lb-row.first{border-color:var(--gold);background:rgba(212,175,55,.08);}
+  .lb-rank{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--muted);width:26px;}
+  .lb-row.first .lb-rank{color:var(--gold);}
+  .lb-name{flex:1;text-align:left;font-weight:700;}
+  .lb-score{font-weight:800;font-size:17px;}
+  .crown{font-size:20px;}
+
+  ::selection{background:var(--red);color:#fff;}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="logo-wrap">
+      <div class="logo display">TKO</div>
+      <div class="tagline">Le quiz qui teste ta culture MMA — <b style="color:var(--text)">et ton Fight IQ</b></div>
+    </div>
+    <div class="mode-btns">
+      <button class="big-btn btn-team" id="btn-team">
+        <span><span class="emoji">🥊</span> Mode Équipe<span class="sub">À plusieurs, un seul téléphone qui tourne</span></span>
+      </button>
+      <button class="big-btn btn-solo" id="btn-solo">
+        <span><span class="emoji">🎯</span> Solo<span class="sub">Fais ton propre combat, seul contre le chrono</span></span>
+      </button>
+    </div>
+    <div class="rules-toggle" id="rules-toggle">Comment ça marche ?</div>
+    <div class="rules-box" id="rules-box">
+      <div><span class="tier-pill pill-1">ROOKIE · 100</span> culture générale MMA.</div>
+      <div><span class="tier-pill pill-2">CONNAISSEUR · 200</span> records, catégories, combats marquants.</div>
+      <div><span class="tier-pill pill-3">PURISTE · 300</span> techniques, soumissions, histoire pointue.</div>
+      <div><span class="tier-pill pill-4">CAGE IQ · 250</span> mises en situation d'arbitrage &amp; de règlement — le vrai test.</div>
+      <div style="margin-top:10px;">Chaque question a une limite de temps. Plus tu réponds vite, plus le <b>bonus de vitesse</b> est gros. En mode équipe, chaque joueur pioche un lot différent — impossible de copier sur le précédent.</div>
+    </div>
+    <div class="footer-credit">TKO — jouable direct dans le navigateur, sans compte, sans app.</div>
+  </div>
+
+  <!-- SETUP TEAM -->
+  <div class="screen" id="screen-setup-team">
+    <div class="top-row"><span class="back-link" data-back="home">← Retour</span></div>
+    <h2 class="screen-title">Qui monte sur la carte ?</h2>
+    <div class="screen-sub">Ajoute les combattants qui vont se passer le téléphone.</div>
+
+    <div class="add-row">
+      <input type="text" id="player-name-input" placeholder="Prénom du combattant" maxlength="16">
+      <button class="add-btn" id="add-player-btn">+</button>
+    </div>
+    <div class="player-list" id="player-list"></div>
+    <div class="empty-hint" id="empty-hint">Ajoute au moins 2 joueurs pour un vrai combat d'équipe.</div>
+
+    <div class="field-label">Questions par round</div>
+    <div class="seg" id="seg-team-count">
+      <button data-val="6">6</button>
+      <button data-val="8" class="selected">8</button>
+      <button data-val="10">10</button>
+      <button data-val="15">15</button>
+    </div>
+
+    <button class="primary-btn" id="start-team-btn" disabled>Lancer le combat</button>
+  </div>
+
+  <!-- SETUP SOLO -->
+  <div class="screen" id="screen-setup-solo">
+    <div class="top-row"><span class="back-link" data-back="home">← Retour</span></div>
+    <h2 class="screen-title">Combat en solo</h2>
+    <div class="screen-sub">Choisis le nombre de questions de ta manche.</div>
+    <div class="field-label">Questions</div>
+    <div class="seg" id="seg-solo-count">
+      <button data-val="6">6</button>
+      <button data-val="8" class="selected">8</button>
+      <button data-val="10">10</button>
+      <button data-val="15">15</button>
+    </div>
+    <button class="primary-btn" id="start-solo-btn">Lancer le combat</button>
+  </div>
+
+  <!-- PASS SCREEN -->
+  <div class="screen pass-screen" id="screen-pass">
+    <div class="pass-glove">📱➡️🥊</div>
+    <div class="screen-sub">Passe le téléphone à</div>
+    <div class="pass-name display" id="pass-name">—</div>
+    <div class="pass-sub">Les autres, on regarde ailleurs 👀</div>
+    <button class="primary-btn" id="pass-ready-btn">Je suis prêt</button>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen" id="screen-game">
+    <div class="game-top">
+      <span class="qcount" id="qcount">Question 1/8</span>
+      <span class="score-live" id="score-live">0 pts</span>
+    </div>
+    <div class="timerbar-track"><div class="timerbar-fill" id="timerbar" style="width:100%"></div></div>
+    <div id="tier-badge" class="tier-badge pill-1">ROOKIE</div>
+    <div class="qcard">
+      <div class="qtext" id="qtext">…</div>
+    </div>
+    <div class="options" id="options"></div>
+    <div class="reveal-note" id="reveal-note"></div>
+    <div class="tap-hint" id="tap-hint"></div>
+  </div>
+
+  <!-- ROUND END -->
+  <div class="screen center-card" id="screen-roundend">
+    <div class="screen-sub" id="roundend-name">Round de —</div>
+    <div class="round-score display" id="roundend-score">0</div>
+    <div class="round-detail" id="roundend-detail">0/8 bonnes réponses</div>
+    <button class="primary-btn" id="roundend-next-btn">Passer le téléphone</button>
+  </div>
+
+  <!-- FINAL -->
+  <div class="screen center-card" id="screen-final">
+    <div class="screen-title display" style="font-size:40px;">RÉSULTATS</div>
+    <div class="leaderboard" id="leaderboard"></div>
+    <button class="primary-btn" id="replay-same-btn">Rejouer (mêmes joueurs)</button>
+    <button class="ghost-btn" id="replay-new-btn">Nouvelle partie</button>
+  </div>
+
+  <div class="points-popup" id="points-popup"></div>
+</div>
+
+<script>
+/* =========================================================
+   TKO — Banque de questions
+   t: 1=Rookie(100) 2=Connaisseur(200) 3=Puriste(300) 4=Cage IQ(250)
+   o: 4 options, a: index de la bonne réponse
+   e: (optionnel) petite explication affichée après la réponse
+   ========================================================= */
+const BANK = [
+{t:1,q:"Quel est le surnom de Conor McGregor ?",o:["Rowdy","The Notorious","Bones","The Eagle"],a:1},
+{t:1,q:"Quel est le surnom de Khabib Nurmagomedov ?",o:["The Eagle","Cyborg","The Iceman","The Spider"],a:0},
+{t:1,q:"Quel est le surnom de Jon Jones ?",o:["The Natural","Rush","Bones","The Prodigy"],a:2},
+{t:1,q:"Quel est le surnom d'Anderson Silva ?",o:["The Spider","The Notorious","The Lioness","The Iceman"],a:0},
+{t:1,q:"Quel est le surnom de Ronda Rousey ?",o:["Cyborg","The Eagle","Rowdy","Rush"],a:2},
+{t:1,q:"Quel est le surnom de Cristiane Justino ?",o:["Cyborg","Rowdy","The Spider","The Lioness"],a:0},
+{t:1,q:"Quel est le surnom de Chuck Liddell ?",o:["The Natural","The Prodigy","Bones","The Iceman"],a:3},
+{t:1,q:"Quel est le surnom de BJ Penn ?",o:["The Prodigy","The Notorious","Rush","The Eagle"],a:0},
+{t:1,q:"Quel est le surnom de Fedor Emelianenko ?",o:["Bones","The Last Emperor","The Iceman","The Spider"],a:1},
+{t:1,q:"Quel est le surnom de Georges St-Pierre ?",o:["Rush","Cyborg","The Eagle","The Prodigy"],a:0},
+{t:1,q:"Quel est le surnom d'Amanda Nunes ?",o:["The Spider","Rowdy","The Lioness","Cyborg"],a:2},
+{t:1,q:"En quelle année a eu lieu le tout premier UFC ?",o:["1993","2001","1991","1996"],a:0,e:"L'UFC 1 a eu lieu le 12 novembre 1993."},
+{t:1,q:"Dans quelle ville a eu lieu l'UFC 1 ?",o:["New York","Miami","Las Vegas","Denver"],a:3},
+{t:1,q:"Qui a remporté le tournoi de l'UFC 1 ?",o:["Dan Severn","Royce Gracie","Art Jimmerson","Ken Shamrock"],a:1},
+{t:1,q:"Que signifie l'acronyme UFC ?",o:["Ultimate Fight Club","Ultimate Fighting Championship","Universal Fighting Cup","United Fight Circuit"],a:1},
+{t:1,q:"Que signifie MMA ?",o:["Mix Muay Arts","Master Martial Arts","Modern Martial Arts","Mixed Martial Arts"],a:3},
+{t:1,q:"Lors du premier UFC, quelles étaient les deux seules fautes interdites ?",o:["Coups bas et coudes","Frappes au sol et clés de bras","Étranglements et projections","Morsures et attaques aux yeux"],a:3,e:"À l'époque, presque tout était permis à part mordre et attaquer les yeux."},
+{t:1,q:"Georges St-Pierre est originaire de quel pays ?",o:["France","États-Unis","Canada","Belgique"],a:2},
+{t:1,q:"Fedor Emelianenko est originaire de quel pays ?",o:["Ukraine","Russie","Kazakhstan","Pologne"],a:1},
+{t:1,q:"Conor McGregor est originaire de quel pays ?",o:["Angleterre","Irlande","Écosse","Pays de Galles"],a:1},
+{t:1,q:"Anderson Silva est originaire de quel pays ?",o:["Cuba","Mexique","Brésil","Portugal"],a:2},
+{t:1,q:"Khabib Nurmagomedov est originaire de quelle région ?",o:["Daguestan","Tchétchénie","Sibérie","Ossétie"],a:0},
+{t:1,q:"Combien de rounds compte un combat non-championnat classique ?",o:["5","2","4","3"],a:3},
+{t:1,q:"Combien de rounds compte un combat pour un titre ?",o:["4","5","3","6"],a:1},
+{t:1,q:"Combien de temps dure un round en MMA ?",o:["3 minutes","10 minutes","7 minutes","5 minutes"],a:3},
+{t:1,q:"Combien de côtés possède l'enceinte de l'UFC, « l'Octogone » ?",o:["6","8","10","12"],a:1},
+{t:1,q:"Quel était le sport de base de Ronda Rousey avant le MMA ?",o:["Judo","Lutte","Boxe","Karaté"],a:0,e:"Ronda Rousey est médaillée de bronze olympique en judo (Pékin 2008)."},
+{t:1,q:"Lors de quel événement a eu lieu le tout premier combat féminin de l'histoire de l'UFC ?",o:["UFC 168","UFC 200","UFC 157","UFC 100"],a:2,e:"UFC 157, en 2013 : Ronda Rousey contre Liz Carmouche."},
+{t:1,q:"Quelle phrase l'arbitre Big John McCarthy est-il connu pour lancer avant un combat ?",o:["Let's get it on !","It's time !","Fight !","Let's go to war !"],a:0},
+{t:2,q:"Quelle est la limite de poids de la catégorie Poids Mouche (Flyweight) ?",o:["115 lbs","125 lbs","135 lbs","145 lbs"],a:1},
+{t:2,q:"Quelle est la limite de poids de la catégorie Poids Coq (Bantamweight) ?",o:["125 lbs","145 lbs","155 lbs","135 lbs"],a:3},
+{t:2,q:"Quelle est la limite de poids de la catégorie Poids Plume (Featherweight) ?",o:["165 lbs","145 lbs","135 lbs","155 lbs"],a:1},
+{t:2,q:"Quelle est la limite de poids de la catégorie Poids Léger (Lightweight) ?",o:["165 lbs","155 lbs","145 lbs","170 lbs"],a:1},
+{t:2,q:"Quelle est la limite de poids de la catégorie Poids Welter (Welterweight) ?",o:["170 lbs","155 lbs","185 lbs","165 lbs"],a:0},
+{t:2,q:"Quelle est la limite de poids de la catégorie Poids Moyen (Middleweight) ?",o:["170 lbs","195 lbs","185 lbs","205 lbs"],a:2},
+{t:2,q:"Quelle est la limite de poids de la catégorie Mi-Lourd (Light Heavyweight) ?",o:["205 lbs","225 lbs","195 lbs","185 lbs"],a:0},
+{t:2,q:"Quelle est la limite de poids supérieure de la catégorie Poids Lourd (Heavyweight) ?",o:["285 lbs","245 lbs","225 lbs","265 lbs"],a:3},
+{t:2,q:"Dans quel pays a été fondée l'organisation PRIDE FC en 1997 ?",o:["Corée du Sud","Thaïlande","Japon","Chine"],a:2},
+{t:2,q:"En quelle année Zuffa (Fertitta / Dana White) a-t-elle racheté l'UFC ?",o:["2009","1998","2001","2005"],a:2},
+{t:2,q:"Quelles divisions de poids l'UFC a-t-elle héritées de la fusion avec le WEC (2010-2011) ?",o:["Mouche et Paille","Welter et Moyen","Plume et Coq","Lourd et Mi-Lourd"],a:2},
+{t:2,q:"Qui a fondé Bellator MMA en 2008 ?",o:["Bjorn Rebney","Frank Fertitta","Scott Coker","Dana White"],a:0},
+{t:2,q:"Dans quel pays a été fondé ONE Championship ?",o:["Singapour","Thaïlande","Philippines","Japon"],a:0},
+{t:2,q:"Quelle organisation, fondée en 2012, est dédiée exclusivement au MMA féminin ?",o:["Bellator","Strikeforce","RIZIN","Invicta FC"],a:3},
+{t:2,q:"Comment Conor McGregor a-t-il battu José Aldo en 13 secondes (UFC 194) ?",o:["KO","Décision","Arrêt médical","Soumission"],a:0},
+{t:2,q:"Quelle technique Holly Holm a-t-elle utilisée pour mettre KO Ronda Rousey (UFC 193) ?",o:["Un uppercut","Un coup de pied à la tête","Un crochet","Un genou sauté"],a:1},
+{t:2,q:"Quelle soumission Anderson Silva a-t-il utilisée pour retourner son combat face à Chael Sonnen (UFC 117) ?",o:["Rear-naked choke","Kimura","Triangle","Guillotine"],a:2,e:"Silva était largement dominé avant de soumettre Sonnen au 5e round."},
+{t:2,q:"Quel combattant a mis fin, par soumission, à la longue série d'invincibilité de Fedor Emelianenko en 2010 ?",o:["Dan Henderson","Antonio Nogueira","Fabricio Werdum","Josh Barnett"],a:2},
+{t:2,q:"Comment Anderson Silva a-t-il fini Vitor Belfort à l'UFC 126 ?",o:["Coup de pied retourné","Genou volant","Direct du droit","Coup de pied avant à la tête"],a:3},
+{t:2,q:"En 2016, quel combattant est devenu le premier à détenir deux titres UFC simultanément dans deux catégories ?",o:["Georges St-Pierre","BJ Penn","Conor McGregor","Daniel Cormier"],a:2},
+{t:2,q:"BJ Penn est connu pour avoir été champion dans deux catégories. Lesquelles ?",o:["Coq et Plume","Welter et Moyen","Plume et Léger","Léger et Welter"],a:3},
+{t:2,q:"Quel combattant est devenu la première personne à détenir deux titres UFC féminins simultanément ?",o:["Cristiane Justino","Miesha Tate","Ronda Rousey","Amanda Nunes"],a:3,e:"Amanda Nunes a détenu les titres poids coq et poids plume en même temps."},
+{t:2,q:"Quel système est utilisé par les juges pour noter chaque round en MMA ?",o:["Système à 5 points","Système à élimination","Système de pourcentage","Système à 10 points obligatoire (10-point must)"],a:3},
+{t:2,q:"Quel est le gym d'entraînement historiquement associé à Georges St-Pierre ?",o:["AKA","American Top Team","Tristar Gym","Jackson Wink"],a:2},
+{t:2,q:"Quelle soumission Fabricio Werdum a-t-il utilisée pour battre Fedor Emelianenko ?",o:["Kimura","Triangle-armbar","Guillotine","Rear-naked choke"],a:1},
+{t:3,q:"La clé de bras appelée « Kimura » doit son nom à quel combattant ?",o:["Rickson Gracie","Kazushi Sakuraba","Helio Gracie","Masahiko Kimura"],a:3,e:"Masahiko Kimura a soumis Helio Gracie avec cette clé en 1951."},
+{t:3,q:"Le « Rear-Naked Choke » est plus connu sous quel sigle ?",o:["RNK","NRC","RKC","RNC"],a:3},
+{t:3,q:"Le triangle (« triangle choke ») est réalisé principalement avec quelle partie du corps ?",o:["Les pieds","Les mains","Les jambes","Les bras"],a:2},
+{t:3,q:"Le « heel hook » attaque principalement quelle articulation ?",o:["Le genou","Le poignet","Le coude","L'épaule"],a:0},
+{t:3,q:"Le « gogoplata » utilise quelle partie du corps pour étrangler l'adversaire ?",o:["La main","Le genou","L'avant-bras","Le tibia ou le pied"],a:3},
+{t:3,q:"Le « D'Arce choke » est réalisé depuis quelle position principalement ?",o:["Un contrôle de tête au sol (front headlock)","La montée","Le contrôle dorsal","La garde fermée"],a:0},
+{t:3,q:"Quelle est la différence entre l'Americana et le Kimura ?",o:["Aucune, c'est la même clé","Elles tournent le bras dans des sens opposés","Le Kimura est interdit en MMA","L'Americana vise la jambe"],a:1,e:"Toutes deux sont des clés d'épaule (keylocks), mais avec une rotation inverse du bras."},
+{t:3,q:"Que signifie l'expression brésilienne « Vale Tudo » ?",o:["Tout est permis","Combat libre","Le meilleur gagne","Sans limite de temps"],a:0,e:"Le Vale Tudo est l'ancêtre brésilien du MMA moderne."},
+{t:3,q:"Le « Twister », soumission popularisée en MMA, provient de quel système de jiu-jitsu ?",o:["Judo","Sambo","10th Planet Jiu-Jitsu","Gracie Jiu-Jitsu"],a:2,e:"Système créé par Eddie Bravo, sans le kimono (no-gi)."},
+{t:3,q:"L'anaconda choke se réalise principalement depuis quelle position ?",o:["Le dos","La garde","Un contrôle de tête au sol, façon étranglement en triangle de bras","Debout"],a:2},
+{t:3,q:"Les frappes du coude en ligne stricte « 12-6 » (de haut en bas) sont-elles autorisées sous les règles unifiées ?",o:["Oui, mais seulement au sol","Oui, sans restriction","Non, elles sont interdites","Seulement en championnat"],a:2},
+{t:3,q:"La manipulation des petites articulations (doigts, orteils) est-elle autorisée en MMA ?",o:["Non, c'est une faute","Seulement au premier round","Seulement en soumission","Oui"],a:0},
+{t:3,q:"PRIDE FC, organisation japonaise historique, combattait dans quel type d'enceinte ?",o:["Un tatami sans limite","Une fosse ouverte","Un octogone grillagé","Un ring de boxe classique à cordes"],a:3,e:"Contrairement à l'UFC, PRIDE utilisait un ring à cordes, pas une cage."},
+{t:3,q:"Combien de juges notent officiellement un combat de MMA, cageside ?",o:["1","3","2","5"],a:1},
+{t:3,q:"Dans le système à 10 points obligatoire, comment est noté un round jugé totalement équilibré ?",o:["10-8","9-9","10-9","10-10"],a:3},
+{t:3,q:"Le combattant japonais Yuki Nakai est resté célèbre pour avoir remporté un combat de Vale Tudo malgré quoi ?",o:["Une fracture du bras","Un genou disloqué","Une disqualification annulée","La perte de la vue d'un œil suite à une attaque illégale"],a:3,e:"Un des combats les plus légendaires de l'histoire du MMA japonais."},
+{t:3,q:"Quelle catégorie de poids a été la première ouverte aux femmes à l'UFC, en 2013 ?",o:["Poids Coq (135 lbs)","Poids Mouche (125 lbs)","Poids Plume (145 lbs)","Poids Paille (115 lbs)"],a:0},
+{t:4,q:"Un combattant est pris dans un heel hook totalement verrouillé et hurle de douleur sans taper. Que doit faire l'arbitre ?",o:["Attendre qu'il tape obligatoirement","Demander à son coin s'il abandonne","Arrêter le combat pour éviter une blessure grave","Compter jusqu'à 10"],a:2,e:"L'arbitre peut stopper un combat sans tap si un danger de blessure grave est manifeste."},
+{t:4,q:"Le coach d'un combattant jette une serviette dans la cage en plein round pour arrêter le combat. Que se passe-t-il officiellement ?",o:["Le combattant est disqualifié","Le combat s'arrête immédiatement","Rien, ce geste n'a aucune valeur officielle en MMA","L'arbitre doit consulter les juges"],a:2,e:"Contrairement à la boxe, jeter l'éponge n'existe pas officiellement en MMA : seul l'arbitre décide."},
+{t:4,q:"Un round se termine parfaitement équilibré aux yeux des trois juges, sans avantage clair. Quel score doit-on donner ?",o:["10-8","10-9 pour l'attaquant","10-10","Le round n'est pas compté"],a:2},
+{t:4,q:"Un combattant rate le poids de quelques livres à la pesée pour un combat sans titre en jeu. Quelle est la conséquence la plus courante ?",o:["Le combat est automatiquement annulé","Une amende sur sa bourse reversée à l'adversaire","Aucune conséquence","Une disqualification immédiate"],a:1,e:"Le combat peut ensuite avoir lieu à un poids catchweight si l'adversaire accepte."},
+{t:4,q:"Un combattant tente une clé de doigts pour forcer une soumission. Est-ce autorisé ?",o:["Oui, seulement en finale","Non, la manipulation des petites articulations est une faute","Oui, c'est une technique valide","Seulement si l'adversaire est déjà groggy"],a:1},
+{t:4,q:"Un coin entre physiquement dans la cage alors qu'un round est encore en cours. Quelle est la conséquence pour son combattant ?",o:["Disqualification","Rien, c'est autorisé entre les échanges","Il perd un point","Le combat est déclaré nul"],a:0},
+{t:4,q:"Après un coup interdit (bas du corps) accidentel, combien de temps de récupération l'arbitre peut-il accorder au maximum ?",o:["Il n'y a pas de limite","Jusqu'à 5 minutes","1 minute","10 minutes"],a:1},
+{t:4,q:"Un combat non-championnat s'achève à égalité totale sur les cartes des trois juges après les rounds réglementaires. Quel est le résultat officiel ?",o:["Le combattant le plus agressif gagne","Match nul (draw)","Un round supplémentaire est ajouté automatiquement","Décision de l'arbitre seul"],a:1},
+{t:4,q:"Un combattant perd connaissance dans un étranglement sans qu'on l'ait vu taper. Comment le combat est-il déclaré ?",o:["Décision des juges","Victoire par soumission / arrêt technique","Match nul","Disqualification de l'agresseur"],a:1,e:"La perte de connaissance dans une soumission vaut arrêt du combat, tap ou non."},
+{t:4,q:"Un combattant continue de frapper juste après le gong signalant la fin du round. Quelle sanction est possible ?",o:["Disqualification automatique","Aucune, le gong n'a pas de valeur","Le round est rejoué","Un point de pénalité retiré par l'arbitre"],a:3},
+{t:4,q:"Pourquoi un combattant peut-il perdre un point malgré une bonne performance dans le round ?",o:["Si son adversaire saigne","Pour une faute, comme s'accrocher à la cage","S'il sourit à la caméra","S'il regarde son coin"],a:1},
+{t:4,q:"Un combat de championnat est interrompu avant la fin par une coupure accidentelle (choc de tête). Que se passe-t-il si assez de rounds complets ont été disputés ?",o:["Il va aux cartes des juges (décision technique)","Victoire automatique de celui qui n'est pas coupé","Le combat reprend le lendemain","Le combat est annulé sans vainqueur"],a:0},
+];
+
+// --- Attribution des identifiants et des points ---
+const POINTS = {1:100, 2:200, 3:300, 4:250};
+const TIER_LABEL = {1:"ROOKIE", 2:"CONNAISSEUR", 3:"PURISTE", 4:"CAGE IQ"};
+BANK.forEach((q,i)=>{ q.id = i; q.pts = POINTS[q.t]; });
+
+// Distribution des tiers selon le nombre de questions par round
+const ROUND_DIST = {
+  6:  {1:2, 2:2, 3:1, 4:1},
+  8:  {1:3, 2:3, 3:1, 4:1},
+  10: {1:3, 2:3, 3:2, 4:2},
+  15: {1:5, 2:5, 3:3, 4:2}
+};
+
+/* ================= State & helpers ================= */
+const PALETTE = ['#e10600','#3b82f6','#d4af37','#a855f7','#22c55e','#f472b6','#fb923c','#60a5fa'];
+const TIME_PER_Q = 20; // secondes
+
+let state = {
+  mode: null,          // 'solo' | 'team'
+  players: [],
+  currentPlayerIndex: 0,
+  questionsPerRound: 8,
+  currentQuestions: [],
+  qIndex: 0,
+  roundScore: 0,
+  roundCorrect: 0,
+  usedIds: new Set(),
+  timerHandle: null,
+  timeLeft: TIME_PER_Q,
+  answered: false,
+  autoNextHandle: null
+};
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function pickRound(n){
+  const dist = ROUND_DIST[n] || ROUND_DIST[8];
+  let picked = [];
+  [1,2,3,4].forEach(t=>{
+    const need = dist[t] || 0;
+    if(need<=0) return;
+    let pool = shuffle(BANK.filter(q=>q.t===t && !state.usedIds.has(q.id)));
+    if(pool.length < need){
+      // pas assez de questions inédites dans ce tier : on autorise la reprise
+      pool = shuffle(BANK.filter(q=>q.t===t));
+    }
+    const chosen = pool.slice(0, need);
+    chosen.forEach(q=>state.usedIds.add(q.id));
+    picked = picked.concat(chosen);
+  });
+  return shuffle(picked);
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ================= Home ================= */
+document.getElementById('rules-toggle').addEventListener('click', ()=>{
+  document.getElementById('rules-box').classList.toggle('open');
+});
+document.getElementById('btn-solo').addEventListener('click', ()=>{
+  state.mode = 'solo';
+  showScreen('screen-setup-solo');
+});
+document.getElementById('btn-team').addEventListener('click', ()=>{
+  state.mode = 'team';
+  state.players = [];
+  renderPlayerList();
+  showScreen('screen-setup-team');
+});
+document.querySelectorAll('[data-back]').forEach(el=>{
+  el.addEventListener('click', ()=> showScreen('screen-'+el.dataset.back));
+});
+
+/* ================= Setup team ================= */
+function renderPlayerList(){
+  const list = document.getElementById('player-list');
+  list.innerHTML = '';
+  state.players.forEach((p,i)=>{
+    const row = document.createElement('div');
+    row.className = 'player-chip';
+    row.innerHTML = `<span class="dot" style="background:${p.color}"></span><span class="name">${p.name}</span><span class="remove-x" data-i="${i}">✕</span>`;
+    list.appendChild(row);
+  });
+  document.getElementById('empty-hint').style.display = state.players.length >= 2 ? 'none' : 'block';
+  document.getElementById('start-team-btn').disabled = state.players.length < 1;
+  list.querySelectorAll('.remove-x').forEach(x=>{
+    x.addEventListener('click', ()=>{
+      state.players.splice(parseInt(x.dataset.i),1);
+      renderPlayerList();
+    });
+  });
+}
+function addPlayer(){
+  const input = document.getElementById('player-name-input');
+  const name = input.value.trim();
+  if(!name) return;
+  state.players.push({name, color: PALETTE[state.players.length % PALETTE.length], score:0, correct:0});
+  input.value = '';
+  renderPlayerList();
+  input.focus();
+}
+document.getElementById('add-player-btn').addEventListener('click', addPlayer);
+document.getElementById('player-name-input').addEventListener('keydown', e=>{
+  if(e.key === 'Enter'){ e.preventDefault(); addPlayer(); }
+});
+document.getElementById('seg-team-count').addEventListener('click', e=>{
+  if(e.target.tagName !== 'BUTTON') return;
+  document.querySelectorAll('#seg-team-count button').forEach(b=>b.classList.remove('selected'));
+  e.target.classList.add('selected');
+  state.questionsPerRound = parseInt(e.target.dataset.val);
+});
+document.getElementById('start-team-btn').addEventListener('click', ()=>{
+  if(state.players.length < 1) return;
+  startGame();
+});
+
+/* ================= Setup solo ================= */
+document.getElementById('seg-solo-count').addEventListener('click', e=>{
+  if(e.target.tagName !== 'BUTTON') return;
+  document.querySelectorAll('#seg-solo-count button').forEach(b=>b.classList.remove('selected'));
+  e.target.classList.add('selected');
+  state.questionsPerRound = parseInt(e.target.dataset.val);
+});
+document.getElementById('start-solo-btn').addEventListener('click', ()=>{
+  state.players = [{name:'Toi', color:PALETTE[0], score:0, correct:0}];
+  startGame();
+});
+
+/* ================= Game flow ================= */
+function startGame(){
+  state.usedIds = new Set();
+  state.currentPlayerIndex = 0;
+  state.players.forEach(p=>{ p.score = 0; p.correct = 0; });
+  if(state.mode === 'team' && state.players.length > 1){
+    showPass(0);
+  } else {
+    startRound(0);
+  }
+}
+
+function showPass(index){
+  state.currentPlayerIndex = index;
+  const p = state.players[index];
+  document.getElementById('pass-name').textContent = p.name;
+  document.getElementById('pass-name').style.color = p.color;
+  showScreen('screen-pass');
+}
+document.getElementById('pass-ready-btn').addEventListener('click', ()=>{
+  startRound(state.currentPlayerIndex);
+});
+
+function startRound(index){
+  state.currentPlayerIndex = index;
+  state.currentQuestions = pickRound(state.questionsPerRound);
+  state.qIndex = 0;
+  state.roundScore = 0;
+  state.roundCorrect = 0;
+  showScreen('screen-game');
+  renderQuestion();
+}
+
+function clearTimers(){
+  if(state.timerHandle){ clearInterval(state.timerHandle); state.timerHandle = null; }
+  if(state.autoNextHandle){ clearTimeout(state.autoNextHandle); state.autoNextHandle = null; }
+}
+
+function renderQuestion(){
+  clearTimers();
+  state.answered = false;
+  state.timeLeft = TIME_PER_Q;
+  const q = state.currentQuestions[state.qIndex];
+  const player = state.players[state.currentPlayerIndex];
+
+  document.getElementById('qcount').textContent = `Question ${state.qIndex+1}/${state.currentQuestions.length}`;
+  document.getElementById('score-live').textContent = `${player.score} pts`;
+  document.getElementById('score-live').style.color = player.color;
+  const badge = document.getElementById('tier-badge');
+  badge.textContent = `${TIER_LABEL[q.t]} · ${q.pts} pts`;
+  badge.className = `tier-badge pill-${q.t}`;
+  document.getElementById('qtext').textContent = q.q;
+  document.getElementById('reveal-note').classList.remove('show');
+  document.getElementById('reveal-note').textContent = '';
+  document.getElementById('tap-hint').textContent = '';
+
+  const optsWrap = document.getElementById('options');
+  optsWrap.innerHTML = '';
+  optsWrap.onclick = null;
+  q.o.forEach((optText,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = optText;
+    btn.addEventListener('click', (e)=>{
+      if(state.answered) return; // already answered: let the click bubble to the skip-to-next handler
+      e.stopPropagation();
+      selectAnswer(i);
+    });
+    optsWrap.appendChild(btn);
+  });
+
+  const fill = document.getElementById('timerbar');
+  fill.style.transition = 'none';
+  fill.style.width = '100%';
+  // force reflow so the next transition applies
+  void fill.offsetWidth;
+  fill.style.transition = `width ${TIME_PER_Q}s linear`;
+  requestAnimationFrame(()=>{ fill.style.width = '0%'; });
+
+  let elapsed = 0;
+  state.timerHandle = setInterval(()=>{
+    elapsed += 0.1;
+    state.timeLeft = Math.max(0, TIME_PER_Q - elapsed);
+    if(elapsed >= TIME_PER_Q){
+      clearInterval(state.timerHandle);
+      state.timerHandle = null;
+      if(!state.answered) selectAnswer(-1);
+    }
+  }, 100);
+}
+
+function selectAnswer(i){
+  if(state.answered) return;
+  state.answered = true;
+  clearTimers();
+
+  const q = state.currentQuestions[state.qIndex];
+  const player = state.players[state.currentPlayerIndex];
+  const correct = i === q.a;
+  const remainingRatio = Math.max(0, state.timeLeft / TIME_PER_Q);
+  const bonus = correct ? Math.round(q.pts * 0.5 * remainingRatio) : 0;
+  const earned = correct ? q.pts + bonus : 0;
+
+  player.score += earned;
+  state.roundScore += earned;
+  if(correct){ player.correct += 1; state.roundCorrect += 1; }
+
+  document.getElementById('score-live').textContent = `${player.score} pts`;
+
+  const opts = document.querySelectorAll('#options .opt');
+  opts.forEach((btn,idx)=>{
+    btn.classList.add('disabled');
+    if(idx === q.a) btn.classList.add('correct');
+    else if(idx === i) btn.classList.add('wrong');
+    else btn.classList.add('dim');
+  });
+
+  if(q.e){
+    const note = document.getElementById('reveal-note');
+    note.textContent = q.e;
+    note.classList.add('show');
+  }
+
+  showPointsPopup(earned, correct);
+
+  document.getElementById('tap-hint').textContent = 'Question suivante...';
+  state.autoNextHandle = setTimeout(nextQuestion, 2600);
+
+  // tap anywhere on the card to skip the wait
+  document.getElementById('options').onclick = (e)=>{
+    if(e.target.classList.contains('disabled')) nextQuestion();
+  };
+}
+
+function showPointsPopup(earned, correct){
+  const el = document.getElementById('points-popup');
+  el.textContent = correct ? `+${earned}` : '0';
+  el.className = 'points-popup' + (correct ? '' : ' zero');
+  requestAnimationFrame(()=>{
+    el.classList.add('show');
+    setTimeout(()=>{ el.classList.remove('show'); }, 900);
+  });
+}
+
+function nextQuestion(){
+  clearTimers();
+  state.qIndex += 1;
+  if(state.qIndex < state.currentQuestions.length){
+    renderQuestion();
+  } else {
+    endRound();
+  }
+}
+
+function endRound(){
+  const player = state.players[state.currentPlayerIndex];
+  document.getElementById('roundend-name').textContent = `Round de ${player.name}`;
+  document.getElementById('roundend-score').textContent = `${state.roundScore} pts`;
+  document.getElementById('roundend-score').style.color = player.color;
+  document.getElementById('roundend-detail').textContent = `${state.roundCorrect}/${state.currentQuestions.length} bonnes réponses`;
+
+  const nextBtn = document.getElementById('roundend-next-btn');
+  const hasNext = state.mode === 'team' && (state.currentPlayerIndex + 1) < state.players.length;
+  nextBtn.textContent = hasNext ? 'Passer le téléphone' : 'Voir les résultats';
+  showScreen('screen-roundend');
+}
+document.getElementById('roundend-next-btn').addEventListener('click', ()=>{
+  const hasNext = state.mode === 'team' && (state.currentPlayerIndex + 1) < state.players.length;
+  if(hasNext){
+    showPass(state.currentPlayerIndex + 1);
+  } else {
+    showFinal();
+  }
+});
+
+function showFinal(){
+  const sorted = state.players.slice().sort((a,b)=> b.score - a.score);
+  const lb = document.getElementById('leaderboard');
+  lb.innerHTML = '';
+  sorted.forEach((p,i)=>{
+    const row = document.createElement('div');
+    row.className = 'lb-row' + (i===0 ? ' first' : '');
+    row.innerHTML = `<span class="lb-rank">${i+1}</span><span class="dot" style="background:${p.color}"></span><span class="lb-name">${p.name}${i===0?' <span class="crown">👑</span>':''}</span><span class="lb-score">${p.score}</span>`;
+    lb.appendChild(row);
+  });
+  showScreen('screen-final');
+}
+document.getElementById('replay-same-btn').addEventListener('click', ()=>{
+  startGame();
+});
+document.getElementById('replay-new-btn').addEventListener('click', ()=>{
+  state.mode = null;
+  state.players = [];
+  showScreen('screen-home');
+});
+</script>
+</body>
+</html>
