@@ -536,7 +536,7 @@ const CAREER_ORGS = [
 const TITLE_QUESTION_PTS  = 1000; // la toute dernière question (combat de titre)
 const CHAMPION_BONUS      = 1000; // bonus en cas de victoire au titre
 const DOUBLE_CHAMPION_BONUS = 2500; // bonus supplémentaire si AUCUN joker utilisé
-const CAREER_SAVE_KEY = 'tko_career_save_v1'; // clé localStorage (reprise de run)
+const CAREER_SAVE_KEY = 'tko_career_save_v2'; // clé localStorage (v2 : indexes du pool commun)
 
 // Répliques du Promoteur — éditables librement. {ORG} {SCORE} {NOM} sont remplacés.
 const PROMO_LINES = {
@@ -581,7 +581,8 @@ const PROMO_LINES = {
 };
 
 /* =========================================================
-   TKO — Banque de questions (modes Équipe & Solo)
+   TKO — Banque historique « quiz » — fusionnée plus bas dans le
+   POOL COMMUN partagé par les 3 modes de jeu.
    t: 1=Rookie(100) 2=Connaisseur(200) 3=Puriste(300) 4=Cage IQ(250)
    o: 4 options, a: index de la bonne réponse
    e: (optionnel) petite explication affichée après la réponse
@@ -842,13 +843,13 @@ BANK.push(
 {t:4,q:"A-t-on le droit de prendre appui sur la cage avec le pied pour sauter ?",o:["Non, tout contact est interdit","Oui, seul le fait de s'AGRIPPER au grillage est interdit","Oui, mais une fois par round","Seulement en défense"],a:1}
 );
 
-// --- Attribution des identifiants et des points ---
+// --- Points et libellés des tiers du mode quiz ---
 const POINTS = {1:100, 2:200, 3:300, 4:250};
 const TIER_LABEL = {1:"ROOKIE", 2:"CONNAISSEUR", 3:"PURISTE", 4:"CAGE IQ"};
-BANK.forEach((q,i)=>{ q.id = i; q.pts = POINTS[q.t]; });
 
 /* =========================================================
-   BANQUE DU MODE CARRIÈRE (séparée des autres modes)
+   BANQUE HISTORIQUE « CARRIÈRE » — fusionnée plus bas dans le
+   POOL COMMUN partagé par les 3 modes de jeu.
    lvl: 1=Rue 2=Amateur 3=Hexagone 4=PFL 5=UFC
    ~100 questions à faits intemporels et vérifiés, étagées par palier.
    Pour en ajouter : même format, champ lvl = palier.
@@ -1115,7 +1116,31 @@ const CAREER_BANK = [
 {lvl:5,q:"Combien de temps a duré le règne record d'Anderson Silva chez les moyens ?",o:["3 ans","Près de 7 ans","10 ans","5 ans"],a:1},
 {lvl:5,q:"Quel boxeur Randy Couture a-t-il soumis à l'UFC 118 ?",o:["Roy Jones Jr","James Toney","Shannon Briggs","Butterbean"],a:1}
 ];
-CAREER_BANK.forEach((q,i)=>{ q.cid = i; });
+/* =========================================================================
+   POOL COMMUN À TOUS LES MODES DE JEU
+   BANK et CAREER_BANK sont fusionnées en un pool unique MASTER : chaque
+   question sert aussi bien aux modes Équipe/Solo (tiers t) qu'au mode
+   Carrière (paliers lvl). L'échelle manquante est déduite automatiquement :
+     t1→lvl2 · t2→lvl3 · t3→lvl4 · t4→lvl4
+     lvl1-2→t1 · lvl3→t2 · lvl4-5→t3
+   Pour AJOUTER des questions : n'importe laquelle des deux banques, avec
+   un champ t OU lvl (ou les deux) — le pool se recompose tout seul.
+   ========================================================================= */
+const LVL_FROM_T = {1:2, 2:3, 3:4, 4:4};
+const T_FROM_LVL = {1:1, 2:1, 3:2, 4:3, 5:3};
+const MASTER = [];
+{
+  const seenQ = new Set();
+  BANK.concat(CAREER_BANK).forEach(src=>{
+    if(seenQ.has(src.q)) return; // dédoublonnage entre les deux banques
+    seenQ.add(src.q);
+    const q = Object.assign({}, src);
+    if(!q.t) q.t = T_FROM_LVL[q.lvl];
+    if(!q.lvl) q.lvl = LVL_FROM_T[q.t];
+    MASTER.push(q);
+  });
+}
+MASTER.forEach((q,i)=>{ q.id = i; q.cid = i; q.pts = POINTS[q.t]; });
 
 // Distribution des tiers selon le nombre de questions par round
 const ROUND_DIST = {
@@ -1160,10 +1185,10 @@ function pickRound(n){
   [1,2,3,4].forEach(t=>{
     const need = dist[t] || 0;
     if(need<=0) return;
-    let pool = shuffle(BANK.filter(q=>q.t===t && !state.usedIds.has(q.id)));
+    let pool = shuffle(MASTER.filter(q=>q.t===t && !state.usedIds.has(q.id)));
     if(pool.length < need){
       // pas assez de questions inédites dans ce tier : on autorise la reprise
-      pool = shuffle(BANK.filter(q=>q.t===t));
+      pool = shuffle(MASTER.filter(q=>q.t===t));
     }
     const chosen = pool.slice(0, need);
     chosen.forEach(q=>state.usedIds.add(q.id));
@@ -1484,8 +1509,8 @@ function pickLine(kind, vars){
 function careerBuildQueues(){
   const queues = {};
   CAREER_ORGS.forEach((org, oi)=>{
-    let pool = shuffle(CAREER_BANK.filter(q=>q.lvl===org.lvl));
-    while(pool.length < org.nbQ){ pool = pool.concat(shuffle(CAREER_BANK.filter(q=>q.lvl===org.lvl))); }
+    let pool = shuffle(MASTER.filter(q=>q.lvl===org.lvl));
+    while(pool.length < org.nbQ){ pool = pool.concat(shuffle(MASTER.filter(q=>q.lvl===org.lvl))); }
     queues[oi] = pool.slice(0, org.nbQ).map(q=>q.cid);
   });
   return queues;
@@ -1516,7 +1541,7 @@ function careerLoadSave(){
   }catch(e){ return null; }
 }
 
-function careerCurrentQ(){ return CAREER_BANK[cs.queues[cs.orgIndex][cs.qPos]]; }
+function careerCurrentQ(){ return MASTER[cs.queues[cs.orgIndex][cs.qPos]]; }
 function careerIsTitleQ(){ return cs.orgIndex===CAREER_ORGS.length-1 && cs.qPos===CAREER_ORGS[cs.orgIndex].nbQ-1; }
 function careerQPts(){ return careerIsTitleQ() ? TITLE_QUESTION_PTS : CAREER_ORGS[cs.orgIndex].pts; }
 
@@ -1701,8 +1726,8 @@ function careerUseJoker(key){
   else if(key === 'swap'){
     // remplace la question par une autre du même palier, sans pénalité
     const inRun = new Set(Object.values(cs.queues).flat());
-    let candidates = CAREER_BANK.filter(x=>x.lvl===q.lvl && !inRun.has(x.cid));
-    if(!candidates.length) candidates = CAREER_BANK.filter(x=>x.lvl===q.lvl && x.cid!==q.cid);
+    let candidates = MASTER.filter(x=>x.lvl===q.lvl && !inRun.has(x.cid));
+    if(!candidates.length) candidates = MASTER.filter(x=>x.lvl===q.lvl && x.cid!==q.cid);
     const repl = shuffle(candidates)[0];
     if(repl){
       cs.queues[cs.orgIndex][cs.qPos] = repl.cid;
